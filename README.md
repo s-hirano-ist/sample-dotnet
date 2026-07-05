@@ -141,14 +141,3 @@ dotnet build TodoApi/TodoApi.csproj
 # テストする
 dotnet test
 ```
-
-## 今回の実装で学ぶこと
-
-- `MapGet`, `MapPost`, `MapPut`, `MapDelete` によるREST APIの作り方
-- URLから値を受け取る方法
-- JSONリクエストをC#の型として受け取る方法
-- HTTPステータスコードの返し方
-- `record` を使ったデータ構造の定義
-- `List<T>` を使ったインメモリ保存
-
-次のステップでは、コードを少しずつ分割し、テスト、バリデーション、データベース保存、エラーハンドリングなどを追加していきます。
