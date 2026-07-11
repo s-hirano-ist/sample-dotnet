@@ -23,7 +23,14 @@ dotnet --version
 ├── README.md
 ├── SampleDotnet.slnx
 ├── TodoApi/
+│   ├── Models/
+│   │   └── TodoItem.cs
 │   ├── Program.cs
+│   ├── Requests/
+│   │   ├── CreateTodoRequest.cs
+│   │   └── UpdateTodoRequest.cs
+│   ├── Services/
+│   │   └── InMemoryTodoService.cs
 │   ├── TodoApi.csproj
 │   ├── appsettings.json
 │   └── appsettings.Development.json
@@ -33,7 +40,9 @@ dotnet --version
 └── mise.toml
 ```
 
-API本体は `TodoApi/Program.cs`、テストは `TodoApi.Tests/TodoApiTests.cs` にあります。
+APIの入口は `TodoApi/Program.cs`、Todoのデータ構造は `TodoApi/Models/`、リクエストの形は `TodoApi/Requests/`、Todo操作の処理は `TodoApi/Services/` にあります。
+
+テストは `TodoApi.Tests/TodoApiTests.cs` にあります。
 
 ## 起動する
 

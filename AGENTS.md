@@ -6,7 +6,7 @@
 
 ## 現在の学習テーマ
 
-現在は「自動テストを追加する」ステップです。
+現在は「コードを責務ごとに分割する」ステップです。
 
 これまでの実装で学んだこと:
 
@@ -18,7 +18,7 @@
 - `List<T>` を使ったインメモリ保存
 - nullable型、`??`、`with`式、三項演算子などの基本構文
 
-今回のテスト追加で学ぶこと:
+テスト追加で学んだこと:
 
 - xUnitを使った.NETの自動テストの書き方
 - `WebApplicationFactory<Program>` によるASP.NET Core APIのテスト起動
@@ -26,7 +26,15 @@
 - `Assert.Equal`, `Assert.NotNull`, `Assert.Empty` などの基本的な検証
 - 正常系と異常系をテストで守る考え方
 
-現在のAPI実装は `TodoApi/Program.cs` に集約しています。これは、最初にASP.NET Core Minimal APIの流れを見通しやすくするためです。テストは `TodoApi.Tests/TodoApiTests.cs` にあります。
+今回の責務分割で学ぶこと:
+
+- `Program.cs` をHTTPの入口として薄く保つ考え方
+- モデル、リクエスト型、サービスクラスの役割
+- `public class` と `private` フィールドの基本
+- `IReadOnlyList<T>` で読み取り専用の一覧を返す意図
+- API層と業務ロジックを分ける理由
+
+現在のAPI入口は `TodoApi/Program.cs`、Todo操作ロジックは `TodoApi/Services/InMemoryTodoService.cs`、テストは `TodoApi.Tests/TodoApiTests.cs` にあります。
 
 ## 今後の拡張/学習計画
 
@@ -56,9 +64,9 @@
 
 ### 3. コードを責務ごとに分割する
 
-- `Program.cs` からモデル、リクエスト型、Todo操作ロジックを分離する
-- Todo操作をサービスクラスに移す
-- エンドポイントはHTTPの入口として読みやすく保つ
+- `Program.cs` からモデル、リクエスト型、Todo操作ロジックを分離する 完了
+- Todo操作をサービスクラスに移す 完了
+- エンドポイントはHTTPの入口として読みやすく保つ 完了
 
 完了目安:
 
