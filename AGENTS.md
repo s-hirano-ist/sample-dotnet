@@ -6,7 +6,9 @@
 
 ## 現在の学習テーマ
 
-今回の実装で学ぶこと:
+現在は「自動テストを追加する」ステップです。
+
+これまでの実装で学んだこと:
 
 - `MapGet`, `MapPost`, `MapPut`, `MapDelete` によるREST APIの作り方
 - URLから値を受け取る方法
@@ -16,7 +18,15 @@
 - `List<T>` を使ったインメモリ保存
 - nullable型、`??`、`with`式、三項演算子などの基本構文
 
-現在の実装は `TodoApi/Program.cs` に集約しています。これは、最初にASP.NET Core Minimal APIの流れを見通しやすくするためです。
+今回のテスト追加で学ぶこと:
+
+- xUnitを使った.NETの自動テストの書き方
+- `WebApplicationFactory<Program>` によるASP.NET Core APIのテスト起動
+- `HttpClient` を使ったAPIテスト
+- `Assert.Equal`, `Assert.NotNull`, `Assert.Empty` などの基本的な検証
+- 正常系と異常系をテストで守る考え方
+
+現在のAPI実装は `TodoApi/Program.cs` に集約しています。これは、最初にASP.NET Core Minimal APIの流れを見通しやすくするためです。テストは `TodoApi.Tests/TodoApiTests.cs` にあります。
 
 ## 今後の拡張/学習計画
 
@@ -33,9 +43,11 @@
 
 ### 2. テストを追加する
 
-- テストプロジェクトを追加する
-- APIの正常系テストを書く
-- 存在しないID、空タイトルなどの異常系テストを書く
+- テストプロジェクトを追加する 完了
+- APIの正常系テストを書く 完了
+- 存在しないID、空タイトルなどの異常系テストを書く 完了
+- 更新と削除のテストを追加する
+- テストが増えても読みやすい構成へ整理する
 
 完了目安:
 

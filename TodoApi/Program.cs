@@ -143,3 +143,7 @@ record UpdateTodoRequest(
     string? Title,
     bool? IsDone
 );
+
+// テストプロジェクトから、このMinimal APIアプリを起動できるようにするための型です。
+// partial は「同じクラスの定義を別の場所にも分けて書ける」という意味です。
+public partial class Program;

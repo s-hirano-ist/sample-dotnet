@@ -21,15 +21,19 @@ dotnet --version
 ```text
 .
 ├── README.md
+├── SampleDotnet.slnx
 ├── TodoApi/
 │   ├── Program.cs
 │   ├── TodoApi.csproj
 │   ├── appsettings.json
 │   └── appsettings.Development.json
+├── TodoApi.Tests/
+│   ├── TodoApiTests.cs
+│   └── TodoApi.Tests.csproj
 └── mise.toml
 ```
 
-主に触るファイルは `TodoApi/Program.cs` です。
+API本体は `TodoApi/Program.cs`、テストは `TodoApi.Tests/TodoApiTests.cs` にあります。
 
 ## 起動する
 
@@ -111,6 +115,12 @@ curl -X DELETE http://localhost:5191/todos/1
 dotnet build TodoApi/TodoApi.csproj
 ```
 
+ソリューション全体をビルドする場合は次です。
+
+```bash
+dotnet build
+```
+
 成功すると、最後に次のような表示が出ます。
 
 ```text
@@ -121,13 +131,23 @@ Build succeeded.
 
 ## テストする
 
-現時点ではテストプロジェクトをまだ作っていないため、次のコマンドを実行しても実行対象のテストはありません。
+このプロジェクトでは、xUnitを使ってAPIの自動テストを書いています。リポジトリのルートで次を実行します。
 
 ```bash
 dotnet test
 ```
 
-今後、本番品質に近づける段階でテストプロジェクトを追加します。その後は `dotnet test` で自動テストを実行できるようにします。
+テストは `TodoApi.Tests/TodoApiTests.cs` にあります。
+
+現在のテストでは、テスト用にAPIをメモリ上で起動し、`HttpClient` で実際のHTTPリクエストに近い形で確認しています。これにより、curlで手動確認しなくても、APIの基本動作をまとめて検証できます。
+
+今ある主なテスト:
+
+- `GET /` が起動確認メッセージを返す
+- `GET /todos` が空配列を返す
+- `POST /todos` でTodoを作成できる
+- 空タイトルの `POST /todos` が `400 Bad Request` を返す
+- 存在しないIDの `GET /todos/{id}` が `404 Not Found` を返す
 
 ## よく使うコマンドまとめ
 
@@ -135,9 +155,12 @@ dotnet test
 # アプリを起動する
 dotnet run --project TodoApi
 
-# ビルドする
+# APIプロジェクトだけビルドする
 dotnet build TodoApi/TodoApi.csproj
 
-# テストする
+# ソリューション全体をビルドする
+dotnet build
+
+# 自動テストを実行する
 dotnet test
 ```
