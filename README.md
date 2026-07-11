@@ -32,6 +32,10 @@ dotnet --version
 │   ├── Services/
 │   │   └── InMemoryTodoService.cs
 │   ├── TodoApi.csproj
+│   ├── Validation/
+│   │   ├── ApiError.cs
+│   │   ├── TodoValidation.cs
+│   │   └── ValidationResult.cs
 │   ├── appsettings.json
 │   └── appsettings.Development.json
 ├── TodoApi.Tests/
@@ -40,7 +44,7 @@ dotnet --version
 └── mise.toml
 ```
 
-APIの入口は `TodoApi/Program.cs`、Todoのデータ構造は `TodoApi/Models/`、リクエストの形は `TodoApi/Requests/`、Todo操作の処理は `TodoApi/Services/` にあります。
+APIの入口は `TodoApi/Program.cs`、Todoのデータ構造は `TodoApi/Models/`、リクエストの形は `TodoApi/Requests/`、Todo操作の処理は `TodoApi/Services/`、入力チェックとエラー形式は `TodoApi/Validation/` にあります。
 
 テストは `TodoApi.Tests/TodoApiTests.cs` にあります。
 
@@ -156,9 +160,11 @@ dotnet test
 - `GET /todos` が空配列を返す
 - `POST /todos` でTodoを作成できる
 - 空タイトルの `POST /todos` が `400 Bad Request` を返す
+- 長すぎるタイトルの `POST /todos` が `400 Bad Request` を返す
 - 存在しないIDの `GET /todos/{id}` が `404 Not Found` を返す
 - `PUT /todos/{id}` でTodoを更新できる
 - 存在しないIDの `PUT /todos/{id}` が `404 Not Found` を返す
+- 空タイトルの `PUT /todos/{id}` が `400 Bad Request` を返す
 - `DELETE /todos/{id}` でTodoを削除できる
 - 存在しないIDの `DELETE /todos/{id}` が `404 Not Found` を返す
 

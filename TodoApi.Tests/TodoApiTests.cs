@@ -125,10 +125,34 @@ public class TodoApiTests
         // 不正な入力なので、HTTP 400 Bad Requestを期待します。
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 
-        // Results.BadRequest("...") は、文字列をJSON文字列として返します。
-        // そのため ReadFromJsonAsync<string>() で読み取ります。
-        var message = await response.Content.ReadFromJsonAsync<string>();
-        Assert.Equal("Title is required.", message);
+        // エラーレスポンスもJSONオブジェクトとして返します。
+        // codeはプログラム向け、messageは人間向けの説明です。
+        var error = await response.Content.ReadFromJsonAsync<JsonObject>();
+        Assert.NotNull(error);
+        Assert.Equal("title_required", error["code"]?.GetValue<string>());
+        Assert.Equal("Title is required.", error["message"]?.GetValue<string>());
+    }
+
+    [Fact]
+    public async Task PostTodos_WithTooLongTitle_ReturnsBadRequest()
+    {
+        using var factory = new WebApplicationFactory<Program>();
+        using var client = factory.CreateClient();
+
+        // new string('a', 101) は、'a' を101文字並べた文字列を作ります。
+        var request = new
+        {
+            title = new string('a', 101)
+        };
+
+        var response = await client.PostAsJsonAsync("/todos", request);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        var error = await response.Content.ReadFromJsonAsync<JsonObject>();
+        Assert.NotNull(error);
+        Assert.Equal("title_too_long", error["code"]?.GetValue<string>());
+        Assert.Equal("Title must be 100 characters or fewer.", error["message"]?.GetValue<string>());
     }
 
     [Fact]
@@ -193,6 +217,35 @@ public class TodoApiTests
         var response = await client.PutAsJsonAsync("/todos/999", updateRequest);
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task PutTodo_WithBlankTitle_ReturnsBadRequest()
+    {
+        using var factory = new WebApplicationFactory<Program>();
+        using var client = factory.CreateClient();
+
+        var createRequest = new
+        {
+            title = "Write tests"
+        };
+
+        var createResponse = await client.PostAsJsonAsync("/todos", createRequest);
+        createResponse.EnsureSuccessStatusCode();
+
+        var updateRequest = new
+        {
+            title = "   "
+        };
+
+        var response = await client.PutAsJsonAsync("/todos/1", updateRequest);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        var error = await response.Content.ReadFromJsonAsync<JsonObject>();
+        Assert.NotNull(error);
+        Assert.Equal("title_required", error["code"]?.GetValue<string>());
+        Assert.Equal("Title is required.", error["message"]?.GetValue<string>());
     }
 
     [Fact]

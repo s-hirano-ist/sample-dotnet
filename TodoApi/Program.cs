@@ -39,12 +39,14 @@ app.MapGet("/todos/{id:int}", (int id) =>
 // リクエストボディのJSONは、CreateTodoRequest型として受け取れます。
 app.MapPost("/todos", (CreateTodoRequest request) =>
 {
-    var todo = todoService.Create(request);
+    var validation = TodoValidation.ValidateTitle(request.Title);
 
-    if (todo is null)
+    if (!validation.IsValid)
     {
-        return Results.BadRequest("Title is required.");
+        return Results.BadRequest(validation.Error);
     }
+
+    var todo = todoService.Create(request);
 
     // Created はHTTP 201 Createdを返します。
     // 第1引数には、作成されたリソースのURLを入れます。
@@ -55,6 +57,13 @@ app.MapPost("/todos", (CreateTodoRequest request) =>
 // UpdateTodoRequestでは Title と IsDone を nullable にしているので、片方だけ更新できます。
 app.MapPut("/todos/{id:int}", (int id, UpdateTodoRequest request) =>
 {
+    var validation = TodoValidation.ValidateOptionalTitle(request.Title);
+
+    if (!validation.IsValid)
+    {
+        return Results.BadRequest(validation.Error);
+    }
+
     var updatedTodo = todoService.Update(id, request);
 
     if (updatedTodo is null)

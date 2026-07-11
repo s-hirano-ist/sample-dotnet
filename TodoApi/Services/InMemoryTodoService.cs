@@ -24,14 +24,8 @@ public class InMemoryTodoService
         return _todos.FirstOrDefault(todo => todo.Id == id);
     }
 
-    public TodoItem? Create(CreateTodoRequest request)
+    public TodoItem Create(CreateTodoRequest request)
     {
-        // string.IsNullOrWhiteSpace は、null・空文字・空白だけの文字列をチェックします。
-        if (string.IsNullOrWhiteSpace(request.Title))
-        {
-            return null;
-        }
-
         // record型は、new TodoItem(...) のように値を指定して作れます。
         var todo = new TodoItem(
             Id: _nextId++,
