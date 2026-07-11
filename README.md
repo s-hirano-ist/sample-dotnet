@@ -148,6 +148,10 @@ dotnet test
 - `POST /todos` でTodoを作成できる
 - 空タイトルの `POST /todos` が `400 Bad Request` を返す
 - 存在しないIDの `GET /todos/{id}` が `404 Not Found` を返す
+- `PUT /todos/{id}` でTodoを更新できる
+- 存在しないIDの `PUT /todos/{id}` が `404 Not Found` を返す
+- `DELETE /todos/{id}` でTodoを削除できる
+- 存在しないIDの `DELETE /todos/{id}` が `404 Not Found` を返す
 
 ## よく使うコマンドまとめ
 

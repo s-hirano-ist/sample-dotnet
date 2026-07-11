@@ -143,4 +143,91 @@ public class TodoApiTests
         // 見つからないリソースにはHTTP 404 Not Foundを返します。
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
+
+    [Fact]
+    public async Task PutTodo_WithValidRequest_UpdatesTodo()
+    {
+        using var factory = new WebApplicationFactory<Program>();
+        using var client = factory.CreateClient();
+
+        var createRequest = new
+        {
+            title = "Write tests"
+        };
+
+        // 更新テストの準備として、まずPOSTでTodoを1件作ります。
+        var createResponse = await client.PostAsJsonAsync("/todos", createRequest);
+        createResponse.EnsureSuccessStatusCode();
+
+        var updateRequest = new
+        {
+            title = "Write API tests",
+            isDone = true
+        };
+
+        // PutAsJsonAsync は、C#のオブジェクトをJSONに変換してPUTします。
+        var updateResponse = await client.PutAsJsonAsync("/todos/1", updateRequest);
+
+        Assert.Equal(HttpStatusCode.OK, updateResponse.StatusCode);
+
+        var updatedTodo = await updateResponse.Content.ReadFromJsonAsync<JsonObject>();
+        Assert.NotNull(updatedTodo);
+        Assert.Equal(1, updatedTodo["id"]?.GetValue<int>());
+        Assert.Equal("Write API tests", updatedTodo["title"]?.GetValue<string>());
+        Assert.True(updatedTodo["isDone"]?.GetValue<bool>());
+        Assert.NotNull(updatedTodo["completedAt"]);
+    }
+
+    [Fact]
+    public async Task PutTodo_WithUnknownId_ReturnsNotFound()
+    {
+        using var factory = new WebApplicationFactory<Program>();
+        using var client = factory.CreateClient();
+
+        var updateRequest = new
+        {
+            title = "This todo does not exist"
+        };
+
+        // 存在しないTodoを更新しようとすると、404になることを確認します。
+        var response = await client.PutAsJsonAsync("/todos/999", updateRequest);
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task DeleteTodo_WithExistingId_RemovesTodo()
+    {
+        using var factory = new WebApplicationFactory<Program>();
+        using var client = factory.CreateClient();
+
+        var createRequest = new
+        {
+            title = "Delete this todo"
+        };
+
+        var createResponse = await client.PostAsJsonAsync("/todos", createRequest);
+        createResponse.EnsureSuccessStatusCode();
+
+        // DeleteAsync は DELETE /todos/1 にHTTPリクエストを送ります。
+        var deleteResponse = await client.DeleteAsync("/todos/1");
+
+        // 削除成功時は、本文なしのHTTP 204 No Contentを期待します。
+        Assert.Equal(HttpStatusCode.NoContent, deleteResponse.StatusCode);
+
+        // 削除後に同じIDを取得すると、もう存在しないので404になるはずです。
+        var getResponse = await client.GetAsync("/todos/1");
+        Assert.Equal(HttpStatusCode.NotFound, getResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task DeleteTodo_WithUnknownId_ReturnsNotFound()
+    {
+        using var factory = new WebApplicationFactory<Program>();
+        using var client = factory.CreateClient();
+
+        var response = await client.DeleteAsync("/todos/999");
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
 }
