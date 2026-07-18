@@ -33,7 +33,9 @@ public class TodoApiTests
         // JSONをJsonObjectとして読み込み、仕様書の主要な項目を確認します。
         var document = await response.Content.ReadFromJsonAsync<JsonObject>();
         Assert.NotNull(document);
-        Assert.Equal("3.1.0", document["openapi"]?.GetValue<string>());
+        // OpenAPIの3.1系であることを確認します。
+        // パッチバージョンは使用するパッケージ更新で変わるため、3.1.で始まることだけを検証します。
+        Assert.StartsWith("3.1.", document["openapi"]?.GetValue<string>());
         Assert.NotNull(document["paths"]?["/todos"]);
     }
 
