@@ -39,12 +39,23 @@ builder.Services.AddAuthorization();
 // 過剰なアクセスや、意図しない大量リクエストからAPIを守るために使います。
 builder.Services.AddRateLimiter(options =>
 {
-    // 固定ウィンドウ方式では、10秒ごとに最大10リクエストを許可します。
-    options.AddFixedWindowLimiter("api", limiterOptions =>
+    // クライアントごとに別の固定ウィンドウを作ります。
+    options.AddPolicy("api", httpContext =>
     {
-        limiterOptions.PermitLimit = 10;
-        limiterOptions.Window = TimeSpan.FromSeconds(10);
-        limiterOptions.QueueLimit = 0;
+        // 認証済みならユーザー名、未認証なら接続元IPを制限キーにします。
+        var partitionKey = httpContext.User.Identity?.IsAuthenticated == true
+            ? $"user:{httpContext.User.Identity.Name}"
+            : $"ip:{httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown"}";
+
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey,
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromSeconds(10),
+                QueueLimit = 0
+            }
+        );
     });
 
     // 制限を超えたリクエストにはHTTP 429を返します。
