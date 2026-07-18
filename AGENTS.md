@@ -6,7 +6,7 @@
 
 ## 現在の学習テーマ
 
-現在は「ヘルスチェックで稼働状態を確認する」ステップです。
+現在は「レート制限でAPIを保護する」ステップです。
 
 これまでの実装で学んだこと:
 
@@ -105,6 +105,14 @@
 - `MapHealthChecks`で監視用HTTPエンドポイントを公開する方法
 - 正常時の`200`と異常時の`503`を使い分ける考え方
 
+今回のレート制限で学ぶこと:
+
+- レート制限が過剰アクセス対策になる理由
+- `AddRateLimiter`で制限ルールを登録する方法
+- 固定ウィンドウ方式と許可リクエスト数の考え方
+- `UseRateLimiter`でミドルウェアを有効にする方法
+- 制限超過時に`429 Too Many Requests`を返す設計
+
 現在のAPI入口は `TodoApi/Program.cs`、DB接続は `TodoApi/Data/TodoDbContext.cs`、Todo操作ロジックは `TodoApi/Services/TodoService.cs`、テストは `TodoApi.Tests/TodoApiTests.cs` にあります。
 
 ## 今後の拡張/学習計画
@@ -174,6 +182,7 @@
 - CORS、認証、認可を必要に応じて追加する（CORS完了、APIキー認証・認可完了）
 - 秘密情報を安全に管理する（User Secrets導入完了）
 - ヘルスチェックを追加する 完了
+- レート制限を追加する 完了
 
 完了目安:
 

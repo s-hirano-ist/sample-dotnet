@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
+using System.Threading.RateLimiting;
 
 // WebApplication.CreateBuilder は、ASP.NET Coreアプリを作るための準備をします。
 // args には、コマンドライン引数が入ります。今は特別な引数を使っていません。
@@ -34,6 +35,22 @@ builder.Services
 // AddAuthorizationは、認証済みかどうかによってエンドポイントへのアクセスを制御します。
 builder.Services.AddAuthorization();
 
+// AddRateLimiterは、一定時間内のリクエスト数を制限する機能を登録します。
+// 過剰なアクセスや、意図しない大量リクエストからAPIを守るために使います。
+builder.Services.AddRateLimiter(options =>
+{
+    // 固定ウィンドウ方式では、10秒ごとに最大10リクエストを許可します。
+    options.AddFixedWindowLimiter("api", limiterOptions =>
+    {
+        limiterOptions.PermitLimit = 10;
+        limiterOptions.Window = TimeSpan.FromSeconds(10);
+        limiterOptions.QueueLimit = 0;
+    });
+
+    // 制限を超えたリクエストにはHTTP 429を返します。
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+});
+
 // AddHealthChecksは、アプリが正常に動作できるか確認する機能を登録します。
 // AddDbContextCheckは、TodoDbContextを使ってSQLiteへ接続できるかも確認対象にします。
 builder.Services
@@ -62,6 +79,7 @@ app.UseCors("Frontend");
 // 認証・認可ミドルウェアをエンドポイントより前に配置します。
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
 
 // MapOpenApi は、OpenAPI仕様書をJSONで公開するエンドポイントを追加します。
 // 開発中は /openapi/v1.json にアクセスすると、API仕様を確認できます。
@@ -104,7 +122,8 @@ app.MapGet("/todos", async (TodoService todoService) =>
 
     return Results.Ok(todos);
 })
-    .WithName("GetTodos");
+    .WithName("GetTodos")
+    .RequireRateLimiting("api");
 
 // GET /todos/1 のように、URLの一部からidを受け取ります。
 // {id:int} と書くことで、idは整数だけ受け付けます。
@@ -118,7 +137,8 @@ app.MapGet("/todos/{id:int}", async (int id, TodoService todoService) =>
         ? Results.NotFound()
         : Results.Ok(todo);
 })
-    .WithName("GetTodo");
+    .WithName("GetTodo")
+    .RequireRateLimiting("api");
 
 // POST /todos は、新しいTodoを作成します。
 // リクエストボディのJSONは、CreateTodoRequest型として受け取れます。
@@ -138,7 +158,8 @@ app.MapPost("/todos", async (CreateTodoRequest request, TodoService todoService)
     return Results.Created($"/todos/{todo.Id}", todo);
 })
     .WithName("CreateTodo")
-    .RequireAuthorization();
+    .RequireAuthorization()
+    .RequireRateLimiting("api");
 
 // PUT /todos/1 は、指定したTodoを更新します。
 // UpdateTodoRequestでは Title と IsDone を nullable にしているので、片方だけ更新できます。
@@ -161,7 +182,8 @@ app.MapPut("/todos/{id:int}", async (int id, UpdateTodoRequest request, TodoServ
     return Results.Ok(updatedTodo);
 })
     .WithName("UpdateTodo")
-    .RequireAuthorization();
+    .RequireAuthorization()
+    .RequireRateLimiting("api");
 
 // DELETE /todos/1 は、指定したTodoを削除します。
 app.MapDelete("/todos/{id:int}", async (int id, TodoService todoService) =>
@@ -178,7 +200,8 @@ app.MapDelete("/todos/{id:int}", async (int id, TodoService todoService) =>
     return Results.NoContent();
 })
     .WithName("DeleteTodo")
-    .RequireAuthorization();
+    .RequireAuthorization()
+    .RequireRateLimiting("api");
 
 // アプリを起動して、HTTPリクエストを待ち受けます。
 app.Run();

@@ -135,6 +135,25 @@ public class TodoApiTests
     }
 
     [Fact]
+    public async Task GetTodos_WhenRequestLimitIsExceeded_ReturnsTooManyRequests()
+    {
+        using var factory = new TodoApiTestFactory();
+        using var client = factory.CreateClient();
+
+        // 10回までは許可されるため、11回目のリクエストを確認します。
+        for (var requestNumber = 1; requestNumber <= 10; requestNumber++)
+        {
+            var allowedResponse = await client.GetAsync("/todos");
+            Assert.Equal(HttpStatusCode.OK, allowedResponse.StatusCode);
+        }
+
+        var rejectedResponse = await client.GetAsync("/todos");
+
+        // 制限を超えた場合はHTTP 429 Too Many Requestsを返します。
+        Assert.Equal(HttpStatusCode.TooManyRequests, rejectedResponse.StatusCode);
+    }
+
+    [Fact]
     public async Task GetTodos_WhenNoTodoExists_ReturnsEmptyArray()
     {
         using var factory = new TodoApiTestFactory();

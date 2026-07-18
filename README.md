@@ -11,6 +11,8 @@ Todoの作成・更新・削除や、存在しないTodoへの更新・削除を
 
 アプリとデータベースの状態は `http://localhost:5191/health` で確認できます。
 
+Todo APIにはレート制限があり、10秒間に最大10リクエストまで許可します。制限を超えると`429 Too Many Requests`が返ります。
+
 ## 必要なもの
 
 - .NET SDK
@@ -100,6 +102,16 @@ curl -i http://localhost:5191/health
 ```
 
 アプリとSQLiteへ接続できていれば`200 OK`が返ります。監視システムやロードバランサーは、このような専用URLを定期的に確認します。
+
+## レート制限を確認する
+
+レート制限は、短時間に大量のリクエストが送られることを防ぐ仕組みです。Todo APIへ11回以上連続でアクセスすると、制限に達したリクエストで`429`が返ります。
+
+```bash
+for i in $(seq 1 11); do
+  curl -s -o /dev/null -w "request=$i status=%{http_code}\n" http://localhost:5191/todos
+done
+```
 
 OpenAPI仕様書を確認:
 
