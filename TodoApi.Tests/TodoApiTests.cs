@@ -17,6 +17,25 @@ namespace TodoApi.Tests;
 // 実際のポートは開かず、HttpClientからAPIを呼び出せます。
 public class TodoApiTests
 {
+    [Fact]
+    public async Task GetOpenApiDocument_ReturnsApiSpecification()
+    {
+        using var factory = new TodoApiTestFactory();
+        using var client = factory.CreateClient();
+
+        // MapOpenApiが追加した仕様書のURLへGETリクエストを送ります。
+        var response = await client.GetAsync("/openapi/v1.json");
+
+        // OpenAPI仕様書が正常に取得できることを確認します。
+        response.EnsureSuccessStatusCode();
+
+        // JSONをJsonObjectとして読み込み、仕様書の主要な項目を確認します。
+        var document = await response.Content.ReadFromJsonAsync<JsonObject>();
+        Assert.NotNull(document);
+        Assert.Equal("3.1.0", document["openapi"]?.GetValue<string>());
+        Assert.NotNull(document["paths"]?["/todos"]);
+    }
+
     // [Fact] はxUnitの属性です。
     // このメソッドが「1つのテストケース」であることを表します。
     [Fact]

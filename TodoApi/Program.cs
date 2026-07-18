@@ -4,6 +4,10 @@ using Microsoft.EntityFrameworkCore;
 // args には、コマンドライン引数が入ります。今は特別な引数を使っていません。
 var builder = WebApplication.CreateBuilder(args);
 
+// AddOpenApi は、アプリのエンドポイントからOpenAPI形式の仕様書を作る機能を登録します。
+// OpenAPIは、APIのURL、HTTPメソッド、リクエスト、レスポンスなどを機械可読な形で表す標準です。
+builder.Services.AddOpenApi();
+
 // AddDbContext は、Entity Framework Coreで使うDbContextをDIコンテナに登録します。
 // ConnectionStrings:TodoDatabase は appsettings.json に書いたSQLiteの接続先です。
 builder.Services.AddDbContext<TodoDbContext>(options =>
@@ -16,6 +20,10 @@ builder.Services.AddScoped<TodoService>();
 // Build を呼ぶと、実際に起動できるWebアプリケーションの本体が作られます。
 var app = builder.Build();
 
+// MapOpenApi は、OpenAPI仕様書をJSONで公開するエンドポイントを追加します。
+// 開発中は /openapi/v1.json にアクセスすると、API仕様を確認できます。
+app.MapOpenApi();
+
 // Migrate は、未適用のマイグレーションをデータベースへ反映します。
 // 今回はハンズオンを簡単にするため、起動時にSQLiteのテーブルを自動作成します。
 using (var scope = app.Services.CreateScope())
@@ -26,7 +34,8 @@ using (var scope = app.Services.CreateScope())
 
 // GET / にアクセスされたときの処理です。
 // () => ... はラムダ式で、「引数なしで、この値を返す処理」を短く書いています。
-app.MapGet("/", () => "Todo API is running.");
+app.MapGet("/", () => "Todo API is running.")
+    .WithName("GetApiStatus");
 
 // GET /todos は、Todo一覧を返します。
 // Results.Ok はHTTP 200 OKのレスポンスを作ります。
@@ -35,7 +44,8 @@ app.MapGet("/todos", async (TodoService todoService) =>
     var todos = await todoService.GetAllAsync();
 
     return Results.Ok(todos);
-});
+})
+    .WithName("GetTodos");
 
 // GET /todos/1 のように、URLの一部からidを受け取ります。
 // {id:int} と書くことで、idは整数だけ受け付けます。
@@ -48,7 +58,8 @@ app.MapGet("/todos/{id:int}", async (int id, TodoService todoService) =>
     return todo is null
         ? Results.NotFound()
         : Results.Ok(todo);
-});
+})
+    .WithName("GetTodo");
 
 // POST /todos は、新しいTodoを作成します。
 // リクエストボディのJSONは、CreateTodoRequest型として受け取れます。
@@ -66,7 +77,8 @@ app.MapPost("/todos", async (CreateTodoRequest request, TodoService todoService)
     // Created はHTTP 201 Createdを返します。
     // 第1引数には、作成されたリソースのURLを入れます。
     return Results.Created($"/todos/{todo.Id}", todo);
-});
+})
+    .WithName("CreateTodo");
 
 // PUT /todos/1 は、指定したTodoを更新します。
 // UpdateTodoRequestでは Title と IsDone を nullable にしているので、片方だけ更新できます。
@@ -87,7 +99,8 @@ app.MapPut("/todos/{id:int}", async (int id, UpdateTodoRequest request, TodoServ
     }
 
     return Results.Ok(updatedTodo);
-});
+})
+    .WithName("UpdateTodo");
 
 // DELETE /todos/1 は、指定したTodoを削除します。
 app.MapDelete("/todos/{id:int}", async (int id, TodoService todoService) =>
@@ -102,7 +115,8 @@ app.MapDelete("/todos/{id:int}", async (int id, TodoService todoService) =>
     // NoContent はHTTP 204 No Contentを返します。
     // 削除成功時は、返すデータがないので204を使います。
     return Results.NoContent();
-});
+})
+    .WithName("DeleteTodo");
 
 // アプリを起動して、HTTPリクエストを待ち受けます。
 app.Run();

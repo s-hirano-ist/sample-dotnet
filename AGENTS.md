@@ -6,7 +6,7 @@
 
 ## 現在の学習テーマ
 
-現在は「データベース保存に切り替える」ステップです。
+現在は「OpenAPIでAPI仕様を確認する」ステップです。
 
 これまでの実装で学んだこと:
 
@@ -49,6 +49,14 @@
 - Entity、DbContext、DbSetの役割
 - マイグレーションでテーブル定義を管理する流れ
 - アプリ本体はファイルDB、テストはインメモリSQLiteを使い分ける考え方
+
+今回のOpenAPIで学ぶこと:
+
+- OpenAPIがAPI仕様を機械可読なJSONとして表す仕組み
+- `AddOpenApi`でOpenAPIサービスをDIコンテナへ登録する方法
+- `MapOpenApi`で仕様書のHTTPエンドポイントを公開する方法
+- `WithName`でエンドポイントに識別名を付ける考え方
+- API仕様の公開自体も自動テストで確認する方法
 
 現在のAPI入口は `TodoApi/Program.cs`、DB接続は `TodoApi/Data/TodoDbContext.cs`、Todo操作ロジックは `TodoApi/Services/TodoService.cs`、テストは `TodoApi.Tests/TodoApiTests.cs` にあります。
 
@@ -113,7 +121,7 @@
 
 ### 6. 本番品質に近づける
 
-- OpenAPI/Swaggerを追加する
+- OpenAPI/Swaggerを追加する 完了（OpenAPI JSONを公開）
 - ログ出力を確認する
 - 設定値を `appsettings.json` で管理する
 - CORS、認証、認可を必要に応じて追加する
