@@ -15,13 +15,29 @@ public class TodoService
         _logger = logger;
     }
 
-    // IReadOnlyList<T> は「読み取り専用の一覧」を表す型です。
-    // ToListAsync は、データベースからTodo一覧を非同期で読み取ります。
-    public async Task<IReadOnlyList<TodoItem>> GetAllAsync()
+    // SkipとTakeを使い、必要なページのTodoだけをデータベースから読み取ります。
+    // ページングすると、Todoが大量にあっても全件をメモリへ読み込まずに済みます。
+    public async Task<TodoListResponse> GetPageAsync(int page, int pageSize)
     {
-        return await _dbContext.Todos
+        var totalCount = await _dbContext.Todos.CountAsync();
+
+        var todos = await _dbContext.Todos
+            .AsNoTracking()
             .OrderBy(todo => todo.Id)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync();
+
+        // 整数の割り算で余りがある場合にも、最後のページを1ページとして数えます。
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+        return new TodoListResponse(
+            Items: todos,
+            Page: page,
+            PageSize: pageSize,
+            TotalCount: totalCount,
+            TotalPages: totalPages
+        );
     }
 
     public async Task<TodoItem?> GetByIdAsync(int id)

@@ -188,14 +188,61 @@ public class TodoApiTests
         response.EnsureSuccessStatusCode();
 
         // ReadFromJsonAsync<JsonArray>() は、レスポンス本文のJSON配列を読み取ります。
-        // /todos は配列を返すAPIなので JsonArray を使います。
-        var todos = await response.Content.ReadFromJsonAsync<JsonArray>();
+        // /todos はページ情報を含むJSONオブジェクトを返します。
+        var todos = await response.Content.ReadFromJsonAsync<JsonObject>();
 
         // Assert.NotNull は、値がnullではないことを確認します。
         Assert.NotNull(todos);
 
-        // Assert.Empty は、配列やListの要素数が0であることを確認します。
-        Assert.Empty(todos);
+        Assert.NotNull(todos["items"]?.AsArray());
+        Assert.Empty(todos["items"]!.AsArray());
+        Assert.Equal(1, todos["page"]?.GetValue<int>());
+        Assert.Equal(20, todos["pageSize"]?.GetValue<int>());
+        Assert.Equal(0, todos["totalCount"]?.GetValue<int>());
+        Assert.Equal(0, todos["totalPages"]?.GetValue<int>());
+    }
+
+    [Fact]
+    public async Task GetTodos_WithPageSize_ReturnsRequestedPageAndTotalCount()
+    {
+        using var factory = new TodoApiTestFactory();
+        using var client = factory.CreateClient();
+
+        // ページングの確認用に3件作成します。
+        for (var todoNumber = 1; todoNumber <= 3; todoNumber++)
+        {
+            var createResponse = await client.PostAsJsonAsync(
+                "/todos",
+                new { title = $"Todo {todoNumber}" }
+            );
+            createResponse.EnsureSuccessStatusCode();
+        }
+
+        var response = await client.GetAsync("/todos?page=2&pageSize=2");
+        response.EnsureSuccessStatusCode();
+
+        var page = await response.Content.ReadFromJsonAsync<JsonObject>();
+        Assert.NotNull(page);
+        Assert.Equal(2, page["page"]?.GetValue<int>());
+        Assert.Equal(2, page["pageSize"]?.GetValue<int>());
+        Assert.Equal(3, page["totalCount"]?.GetValue<int>());
+        Assert.Equal(2, page["totalPages"]?.GetValue<int>());
+        Assert.Equal(1, page["items"]?.AsArray().Count);
+        Assert.Equal("Todo 3", page["items"]?[0]?["title"]?.GetValue<string>());
+    }
+
+    [Fact]
+    public async Task GetTodos_WithInvalidPageSize_ReturnsBadRequest()
+    {
+        using var factory = new TodoApiTestFactory();
+        using var client = factory.CreateClient();
+
+        var response = await client.GetAsync("/todos?pageSize=101");
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var error = await response.Content.ReadFromJsonAsync<JsonObject>();
+        Assert.NotNull(error);
+        Assert.Equal("page_size_invalid", error["code"]?.GetValue<string>());
     }
 
     [Fact]

@@ -183,11 +183,25 @@ app.MapGet("/", () => "Todo API is running.")
 app.MapHealthChecks("/health")
     .WithName("GetHealth");
 
-// GET /todos は、Todo一覧を返します。
-// Results.Ok はHTTP 200 OKのレスポンスを作ります。
-app.MapGet("/todos", async (TodoService todoService) =>
+// GET /todos は、指定されたページのTodo一覧を返します。
+// クエリ文字列がない場合は、page=1、pageSize=20として扱います。
+app.MapGet("/todos", async (
+    int? page,
+    int? pageSize,
+    TodoService todoService
+) =>
 {
-    var todos = await todoService.GetAllAsync();
+    var currentPage = page ?? PaginationValidation.DefaultPage;
+    var currentPageSize = pageSize ?? PaginationValidation.DefaultPageSize;
+
+    var validation = PaginationValidation.Validate(currentPage, currentPageSize);
+
+    if (!validation.IsValid)
+    {
+        return Results.BadRequest(validation.Error);
+    }
+
+    var todos = await todoService.GetPageAsync(currentPage, currentPageSize);
 
     return Results.Ok(todos);
 })
