@@ -6,7 +6,7 @@
 
 ## 現在の学習テーマ
 
-現在は「Todo一覧を条件でフィルタリングする」ステップです。
+現在は「ASP.NET Coreの引数自動処理を基礎から理解する」ステップです。
 
 これまでの実装で学んだこと:
 
@@ -195,6 +195,18 @@
 - Minimal APIからサービス、EF Coreへキャンセルを伝播する方法
 - `CountAsync`や`SaveChangesAsync`へトークンを渡す理由
 - クライアント切断後の不要な処理を減らす考え方
+
+今回の基礎復習で学ぶこと:
+
+- 普通のC#メソッドで引数を渡す方法
+- Minimal APIのラムダ式とエンドポイントの関係
+- URL、クエリ文字列、JSONボディから値が入る流れ
+- DIコンテナからサービスが渡される流れ
+- `CancellationToken`がASP.NET Coreから渡される仕組み
+
+基礎学習の資料:
+
+- `docs/learning/01-aspnet-core-parameters.md`
 
 現在のAPI入口は `TodoApi/Program.cs`、DB接続は `TodoApi/Data/TodoDbContext.cs`、Todo操作ロジックは `TodoApi/Services/TodoService.cs`、テストは `TodoApi.Tests/TodoApiTests.cs` にあります。
 
