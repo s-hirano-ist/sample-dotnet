@@ -11,7 +11,7 @@ Todoの作成・更新・削除や、存在しないTodoへの更新・削除を
 
 アプリとデータベースの状態は `http://localhost:5191/health` で確認できます。
 
-Todo APIにはクライアント単位のレート制限があり、設定ファイルの`RateLimit`で1クライアントあたりの許可数と時間枠を管理します。初期設定では10秒間に最大10リクエストまで許可し、制限を超えると`429 Too Many Requests`が返ります。
+Todo APIにはクライアント単位のレート制限があり、設定ファイルの`RateLimit`で保存先、許可数、時間枠を管理します。初期設定はインメモリで、10秒間に最大10リクエストまで許可します。制限を超えると`429 Too Many Requests`が返ります。
 
 ## 必要なもの
 
@@ -112,6 +112,25 @@ for i in $(seq 1 11); do
   curl -s -o /dev/null -w "request=$i status=%{http_code}\n" http://localhost:5191/todos
 done
 ```
+
+## Redisによる分散レート制限
+
+ECS/Fargateなどで複数コンテナを起動する場合、インメモリのカウンターはコンテナごとに分かれます。Redisを共有カウンターにすると、複数コンテナで同じ制限状態を使えます。
+
+ローカルRedisを起動する例:
+
+```bash
+docker run --name sample-dotnet-redis -p 6379:6379 -d redis:7-alpine
+```
+
+Redisモードを有効にする設定:
+
+```bash
+dotnet user-secrets set "RateLimit:Store" "Redis" --project TodoApi
+dotnet user-secrets set "ConnectionStrings:Redis" "localhost:6379" --project TodoApi
+```
+
+Redisモードでは、Luaスクリプトでカウンター増加と有効期限設定をRedis内で一度に行います。Redisに接続できない場合は、レート制限を無効にせず`503 Service Unavailable`を返します。
 
 OpenAPI仕様書を確認:
 

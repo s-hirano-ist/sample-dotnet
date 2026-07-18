@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.RateLimiting;
+using StackExchange.Redis;
 
 // WebApplication.CreateBuilder は、ASP.NET Coreアプリを作るための準備をします。
 // args には、コマンドライン引数が入ります。今は特別な引数を使っていません。
@@ -37,40 +38,61 @@ builder.Services.AddAuthorization();
 
 // AddRateLimiterは、一定時間内のリクエスト数を制限する機能を登録します。
 // 過剰なアクセスや、意図しない大量リクエストからAPIを守るために使います。
+var rateLimitStore = builder.Configuration.GetValue<string>("RateLimit:Store") ?? "Memory";
+var useRedisRateLimit = string.Equals(rateLimitStore, "Redis", StringComparison.OrdinalIgnoreCase);
 var rateLimitPermitLimit = builder.Configuration.GetValue<int>("RateLimit:PermitLimit", 10);
 var rateLimitWindowSeconds = builder.Configuration.GetValue<int>("RateLimit:WindowSeconds", 10);
 
-builder.Services.AddRateLimiter(options =>
+if (useRedisRateLimit)
 {
-    // クライアントごとに別の固定ウィンドウを作ります。
-    options.AddPolicy("api", httpContext =>
-    {
-        // 認証済みならユーザー名、未認証なら接続元IPを制限キーにします。
-        var partitionKey = httpContext.User.Identity?.IsAuthenticated == true
-            ? $"user:{httpContext.User.Identity.Name}"
-            : $"ip:{httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown"}";
+    var redisConnectionString = builder.Configuration.GetConnectionString("Redis");
 
-        return RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey,
-            _ => new FixedWindowRateLimiterOptions
-            {
-                PermitLimit = rateLimitPermitLimit,
-                Window = TimeSpan.FromSeconds(rateLimitWindowSeconds),
-                QueueLimit = 0
-            }
+    if (string.IsNullOrWhiteSpace(redisConnectionString))
+    {
+        throw new InvalidOperationException(
+            "RateLimit:Store is Redis, but ConnectionStrings:Redis is not configured."
         );
-    });
+    }
 
-    // 制限を超えたリクエストにはHTTP 429を返します。
-    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-
-    // Retry-Afterは、クライアントへ「何秒後に再試行してよいか」を伝えるHTTPヘッダーです。
-    options.OnRejected = (context, _) =>
+    // Redis接続はアプリケーション全体で共有するため、Singletonとして登録します。
+    builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
+        ConnectionMultiplexer.Connect(redisConnectionString)
+    );
+}
+else
+{
+    builder.Services.AddRateLimiter(options =>
     {
-        context.HttpContext.Response.Headers.RetryAfter = rateLimitWindowSeconds.ToString();
-        return ValueTask.CompletedTask;
-    };
-});
+        // クライアントごとに別の固定ウィンドウを作ります。
+        options.AddPolicy("api", httpContext =>
+        {
+            // 認証済みならユーザー名、未認証なら接続元IPを制限キーにします。
+            var partitionKey = httpContext.User.Identity?.IsAuthenticated == true
+                ? $"user:{httpContext.User.Identity.Name}"
+                : $"ip:{httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown"}";
+
+            return RateLimitPartition.GetFixedWindowLimiter(
+                partitionKey,
+                _ => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = rateLimitPermitLimit,
+                    Window = TimeSpan.FromSeconds(rateLimitWindowSeconds),
+                    QueueLimit = 0
+                }
+            );
+        });
+
+        // 制限を超えたリクエストにはHTTP 429を返します。
+        options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+        // Retry-Afterは、クライアントへ「何秒後に再試行してよいか」を伝えるHTTPヘッダーです。
+        options.OnRejected = (context, _) =>
+        {
+            context.HttpContext.Response.Headers.RetryAfter = rateLimitWindowSeconds.ToString();
+            return ValueTask.CompletedTask;
+        };
+    });
+}
 
 // AddHealthChecksは、アプリが正常に動作できるか確認する機能を登録します。
 // AddDbContextCheckは、TodoDbContextを使ってSQLiteへ接続できるかも確認対象にします。
@@ -100,7 +122,17 @@ app.UseCors("Frontend");
 // 認証・認可ミドルウェアをエンドポイントより前に配置します。
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseRateLimiter();
+
+if (useRedisRateLimit)
+{
+    // Redisモードでは、全コンテナで共有できるミドルウェアを使います。
+    app.UseMiddleware<DistributedRateLimitMiddleware>();
+}
+else
+{
+    // Memoryモードでは、ASP.NET Core標準のプロセス内レートリミッターを使います。
+    app.UseRateLimiter();
+}
 
 // MapOpenApi は、OpenAPI仕様書をJSONで公開するエンドポイントを追加します。
 // 開発中は /openapi/v1.json にアクセスすると、API仕様を確認できます。
