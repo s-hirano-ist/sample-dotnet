@@ -23,7 +23,8 @@ public class TodoService
         bool? isDone,
         string? search,
         string? sortBy,
-        string? sortOrder
+        string? sortOrder,
+        CancellationToken cancellationToken
     )
     {
         // IQueryableは、まだDBへ実行していない検索処理を表します。
@@ -46,7 +47,7 @@ public class TodoService
             query = query.Where(todo => todo.Title.ToLower().Contains(normalizedSearchTerm));
         }
 
-        var totalCount = await query.CountAsync();
+        var totalCount = await query.CountAsync(cancellationToken);
 
         var normalizedSortBy = (sortBy ?? TodoSortValidation.DefaultSortBy).Trim().ToLowerInvariant();
         var normalizedSortOrder = (sortOrder ?? TodoSortValidation.DefaultSortOrder).Trim().ToLowerInvariant();
@@ -65,7 +66,7 @@ public class TodoService
         var todos = await query
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
         // 整数の割り算で余りがある場合にも、最後のページを1ページとして数えます。
         var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
@@ -79,14 +80,14 @@ public class TodoService
         );
     }
 
-    public async Task<TodoItem?> GetByIdAsync(int id)
+    public async Task<TodoItem?> GetByIdAsync(int id, CancellationToken cancellationToken)
     {
         // FirstOrDefaultAsync は、条件に合う最初の要素をデータベースから探します。
         // 見つからない場合は null を返します。
-        return await _dbContext.Todos.FirstOrDefaultAsync(todo => todo.Id == id);
+        return await _dbContext.Todos.FirstOrDefaultAsync(todo => todo.Id == id, cancellationToken);
     }
 
-    public async Task<TodoItem> CreateAsync(CreateTodoRequest request)
+    public async Task<TodoItem> CreateAsync(CreateTodoRequest request, CancellationToken cancellationToken)
     {
         // IdはSQLiteが自動採番するので、ここでは指定しません。
         var todo = new TodoItem(
@@ -101,7 +102,7 @@ public class TodoService
 
         // SaveChangesAsync を呼ぶと、変更内容がSQLiteに保存されます。
         // ここでSQLiteがIdを採番し、todo.Idにも反映されます。
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync(cancellationToken);
 
         // {TodoId}は構造化ログのプレースホルダーです。
         // タイトル本文はログに出さず、操作とIDだけを記録します。
@@ -110,9 +111,13 @@ public class TodoService
         return todo;
     }
 
-    public async Task<TodoItem?> UpdateAsync(int id, UpdateTodoRequest request)
+    public async Task<TodoItem?> UpdateAsync(
+        int id,
+        UpdateTodoRequest request,
+        CancellationToken cancellationToken
+    )
     {
-        var existingTodo = await GetByIdAsync(id);
+        var existingTodo = await GetByIdAsync(id, cancellationToken);
 
         if (existingTodo is null)
         {
@@ -131,16 +136,16 @@ public class TodoService
             ? existingTodo.CompletedAt ?? DateTimeOffset.UtcNow
             : null;
 
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Updated todo with id {TodoId}", id);
 
         return existingTodo;
     }
 
-    public async Task<bool> DeleteAsync(int id)
+    public async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken)
     {
-        var todo = await GetByIdAsync(id);
+        var todo = await GetByIdAsync(id, cancellationToken);
 
         if (todo is null)
         {
@@ -149,7 +154,7 @@ public class TodoService
         }
 
         _dbContext.Todos.Remove(todo);
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Deleted todo with id {TodoId}", id);
 

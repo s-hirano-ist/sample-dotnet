@@ -192,6 +192,7 @@ app.MapGet("/todos", async (
     string? search,
     string? sortBy,
     string? sortOrder,
+    CancellationToken cancellationToken,
     TodoService todoService
 ) =>
 {
@@ -218,7 +219,8 @@ app.MapGet("/todos", async (
         isDone,
         search,
         sortBy,
-        sortOrder
+        sortOrder,
+        cancellationToken
     );
 
     return Results.Ok(todos);
@@ -228,9 +230,9 @@ app.MapGet("/todos", async (
 
 // GET /todos/1 のように、URLの一部からidを受け取ります。
 // {id:int} と書くことで、idは整数だけ受け付けます。
-app.MapGet("/todos/{id:int}", async (int id, TodoService todoService) =>
+app.MapGet("/todos/{id:int}", async (int id, TodoService todoService, CancellationToken cancellationToken) =>
 {
-    var todo = await todoService.GetByIdAsync(id);
+    var todo = await todoService.GetByIdAsync(id, cancellationToken);
 
     // 三項演算子です。
     // 条件 ? trueの場合の値 : falseの場合の値 という形で書きます。
@@ -243,7 +245,11 @@ app.MapGet("/todos/{id:int}", async (int id, TodoService todoService) =>
 
 // POST /todos は、新しいTodoを作成します。
 // リクエストボディのJSONは、CreateTodoRequest型として受け取れます。
-app.MapPost("/todos", async (CreateTodoRequest request, TodoService todoService) =>
+app.MapPost("/todos", async (
+    CreateTodoRequest request,
+    TodoService todoService,
+    CancellationToken cancellationToken
+) =>
 {
     var validation = TodoValidation.ValidateTitle(request.Title);
 
@@ -252,7 +258,7 @@ app.MapPost("/todos", async (CreateTodoRequest request, TodoService todoService)
         return Results.BadRequest(validation.Error);
     }
 
-    var todo = await todoService.CreateAsync(request);
+    var todo = await todoService.CreateAsync(request, cancellationToken);
 
     // Created はHTTP 201 Createdを返します。
     // 第1引数には、作成されたリソースのURLを入れます。
@@ -264,7 +270,12 @@ app.MapPost("/todos", async (CreateTodoRequest request, TodoService todoService)
 
 // PUT /todos/1 は、指定したTodoを更新します。
 // UpdateTodoRequestでは Title と IsDone を nullable にしているので、片方だけ更新できます。
-app.MapPut("/todos/{id:int}", async (int id, UpdateTodoRequest request, TodoService todoService) =>
+app.MapPut("/todos/{id:int}", async (
+    int id,
+    UpdateTodoRequest request,
+    TodoService todoService,
+    CancellationToken cancellationToken
+) =>
 {
     var validation = TodoValidation.ValidateOptionalTitle(request.Title);
 
@@ -273,7 +284,7 @@ app.MapPut("/todos/{id:int}", async (int id, UpdateTodoRequest request, TodoServ
         return Results.BadRequest(validation.Error);
     }
 
-    var updatedTodo = await todoService.UpdateAsync(id, request);
+    var updatedTodo = await todoService.UpdateAsync(id, request, cancellationToken);
 
     if (updatedTodo is null)
     {
@@ -287,9 +298,13 @@ app.MapPut("/todos/{id:int}", async (int id, UpdateTodoRequest request, TodoServ
     .RequireRateLimiting("api");
 
 // DELETE /todos/1 は、指定したTodoを削除します。
-app.MapDelete("/todos/{id:int}", async (int id, TodoService todoService) =>
+app.MapDelete("/todos/{id:int}", async (
+    int id,
+    TodoService todoService,
+    CancellationToken cancellationToken
+) =>
 {
-    var deleted = await todoService.DeleteAsync(id);
+    var deleted = await todoService.DeleteAsync(id, cancellationToken);
 
     if (!deleted)
     {

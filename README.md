@@ -19,6 +19,8 @@ Todo APIにはクライアント単位のレート制限があり、設定ファ
 
 Todo一覧はページング、完了状態フィルター、タイトル検索、ソートに対応しています。`GET /todos`はデフォルトで1ページ目を20件返し、`page`と`pageSize`で取得範囲を指定できます。`pageSize`は最大100件です。`isDone=true`または`isDone=false`を指定すると、完了状態で絞り込めます。`search`を指定すると、タイトルにその文字列を含むTodoだけを取得します。`sortBy`は`id`、`title`、`createdAt`を指定でき、`sortOrder`は`asc`または`desc`を指定できます。
 
+APIのDB処理にはリクエストの`CancellationToken`を渡しています。クライアントが通信を中断した場合、EF Coreの検索や保存もキャンセルできる構成です。
+
 ## 必要なもの
 
 - .NET SDK
