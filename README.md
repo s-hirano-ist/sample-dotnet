@@ -175,6 +175,22 @@ HTTP POST /todos returned 401 in 1 ms
 HTTP GET /todos returned 429 in 0 ms
 ```
 
+## 予期しない例外のレスポンス
+
+予期しない例外が発生した場合、APIは詳細な例外メッセージをクライアントへ返さず、HTTP 500と`application/problem+json`形式のレスポンスを返します。
+
+```json
+{
+  "type": "https://httpstatuses.com/500",
+  "title": "An unexpected error occurred.",
+  "status": 500,
+  "instance": "/todos",
+  "requestId": "リクエストを識別するID"
+}
+```
+
+詳細な例外情報はサーバーログへ出力し、レスポンスの`requestId`を使って該当ログを探します。
+
 ## CORSを確認する
 
 CORSは、ブラウザ上のフロントエンドから別のオリジンにあるAPIを呼び出すときの許可ルールです。現在は`appsettings.json`にある`http://localhost:3000`だけを許可しています。
