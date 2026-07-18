@@ -5,12 +5,14 @@ using Microsoft.EntityFrameworkCore;
 public class TodoService
 {
     private readonly TodoDbContext _dbContext;
+    private readonly ILogger<TodoService> _logger;
 
-    // コンストラクタでTodoDbContextを受け取ります。
-    // ASP.NET CoreのDIが、自動でTodoDbContextを渡してくれます。
-    public TodoService(TodoDbContext dbContext)
+    // コンストラクタでTodoDbContextとILoggerを受け取ります。
+    // ASP.NET CoreのDIが、必要なオブジェクトを自動で渡してくれます。
+    public TodoService(TodoDbContext dbContext, ILogger<TodoService> logger)
     {
         _dbContext = dbContext;
+        _logger = logger;
     }
 
     // IReadOnlyList<T> は「読み取り専用の一覧」を表す型です。
@@ -46,6 +48,10 @@ public class TodoService
         // ここでSQLiteがIdを採番し、todo.Idにも反映されます。
         await _dbContext.SaveChangesAsync();
 
+        // {TodoId}は構造化ログのプレースホルダーです。
+        // タイトル本文はログに出さず、操作とIDだけを記録します。
+        _logger.LogInformation("Created todo with id {TodoId}", todo.Id);
+
         return todo;
     }
 
@@ -55,6 +61,7 @@ public class TodoService
 
         if (existingTodo is null)
         {
+            _logger.LogWarning("Todo with id {TodoId} was not found for update", id);
             return null;
         }
 
@@ -71,6 +78,8 @@ public class TodoService
 
         await _dbContext.SaveChangesAsync();
 
+        _logger.LogInformation("Updated todo with id {TodoId}", id);
+
         return existingTodo;
     }
 
@@ -80,11 +89,14 @@ public class TodoService
 
         if (todo is null)
         {
+            _logger.LogWarning("Todo with id {TodoId} was not found for delete", id);
             return false;
         }
 
         _dbContext.Todos.Remove(todo);
         await _dbContext.SaveChangesAsync();
+
+        _logger.LogInformation("Deleted todo with id {TodoId}", id);
 
         return true;
     }

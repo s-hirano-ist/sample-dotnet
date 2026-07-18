@@ -6,7 +6,7 @@
 
 ## 現在の学習テーマ
 
-現在は「Swagger UIでAPI仕様を操作する」ステップです。
+現在は「ログ出力を確認する」ステップです。
 
 これまでの実装で学んだこと:
 
@@ -64,6 +64,14 @@
 - `UseSwaggerUI`で既存のOpenAPI仕様書を画面に表示する方法
 - 開発環境だけで有効にする条件分岐
 - APIドキュメントの画面も自動テストで確認する考え方
+
+今回のログ出力で学ぶこと:
+
+- `ILogger<T>`をDIから受け取る方法
+- `LogInformation`と`LogWarning`の使い分け
+- `{TodoId}`のようなプレースホルダーを使う構造化ログ
+- `appsettings.json`でログレベルを設定する方法
+- ログに入力内容を出さず、必要な情報だけを記録する考え方
 
 現在のAPI入口は `TodoApi/Program.cs`、DB接続は `TodoApi/Data/TodoDbContext.cs`、Todo操作ロジックは `TodoApi/Services/TodoService.cs`、テストは `TodoApi.Tests/TodoApiTests.cs` にあります。
 
@@ -129,7 +137,7 @@
 ### 6. 本番品質に近づける
 
 - OpenAPI/Swaggerを追加する 完了（OpenAPI JSONと開発用Swagger UIを公開）
-- ログ出力を確認する
+- ログ出力を確認する 完了
 - 設定値を `appsettings.json` で管理する
 - CORS、認証、認可を必要に応じて追加する
 

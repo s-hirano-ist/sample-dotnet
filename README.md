@@ -7,6 +7,8 @@ ASP.NET Core Minimal APIで実装し、TodoはSQLiteに保存します。Entity 
 OpenAPI仕様書は、アプリ起動後に `http://localhost:5191/openapi/v1.json` で確認できます。ポート番号は起動時の表示に合わせてください。
 Swagger UIは `http://localhost:5191/swagger` で確認できます。Swagger UIから各APIをブラウザ上で試すこともできます。
 
+Todoの作成・更新・削除や、存在しないTodoへの更新・削除を行うと、ターミナルに構造化ログが出力されます。
+
 ## 必要なもの
 
 - .NET SDK
@@ -106,6 +108,19 @@ http://localhost:5191/swagger
 ```
 
 Swagger UIはOpenAPI仕様書を読み込み、APIの一覧表示やリクエスト送信を行える画面です。今回は開発環境でのみ有効にしています。
+
+## ログを確認する
+
+アプリを起動したターミナルで、Swagger UIやcurlからTodoを操作します。次のようなログが表示されます。
+
+```text
+info: TodoService[0]
+      Created todo with id 1
+warn: TodoService[0]
+      Todo with id 999 was not found for delete
+```
+
+`ILogger<TodoService>`はDIコンテナから自動で渡されます。`{TodoId}`のようなプレースホルダーを使うと、ログメッセージと値を分けて扱える構造化ログになります。タイトル本文はログに出さず、必要最小限の情報だけを記録しています。
 
 ## APIを試す
 
