@@ -184,10 +184,11 @@ app.MapHealthChecks("/health")
     .WithName("GetHealth");
 
 // GET /todos は、指定されたページのTodo一覧を返します。
-// クエリ文字列がない場合は、page=1、pageSize=20として扱います。
+// クエリ文字列がない場合は、page=1、pageSize=20、全状態として扱います。
 app.MapGet("/todos", async (
     int? page,
     int? pageSize,
+    bool? isDone,
     TodoService todoService
 ) =>
 {
@@ -201,7 +202,7 @@ app.MapGet("/todos", async (
         return Results.BadRequest(validation.Error);
     }
 
-    var todos = await todoService.GetPageAsync(currentPage, currentPageSize);
+    var todos = await todoService.GetPageAsync(currentPage, currentPageSize, isDone);
 
     return Results.Ok(todos);
 })

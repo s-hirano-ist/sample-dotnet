@@ -246,6 +246,42 @@ public class TodoApiTests
     }
 
     [Fact]
+    public async Task GetTodos_WithIsDoneFilter_ReturnsOnlyMatchingTodos()
+    {
+        using var factory = new TodoApiTestFactory();
+        using var client = factory.CreateClient();
+
+        var firstCreateResponse = await client.PostAsJsonAsync(
+            "/todos",
+            new { title = "Incomplete todo" }
+        );
+        firstCreateResponse.EnsureSuccessStatusCode();
+
+        var secondCreateResponse = await client.PostAsJsonAsync(
+            "/todos",
+            new { title = "Completed todo" }
+        );
+        secondCreateResponse.EnsureSuccessStatusCode();
+
+        // 2件目だけを完了状態へ変更します。
+        var updateResponse = await client.PutAsJsonAsync(
+            "/todos/2",
+            new { isDone = true }
+        );
+        updateResponse.EnsureSuccessStatusCode();
+
+        var response = await client.GetAsync("/todos?isDone=true");
+        response.EnsureSuccessStatusCode();
+
+        var page = await response.Content.ReadFromJsonAsync<JsonObject>();
+        Assert.NotNull(page);
+        Assert.Equal(1, page["totalCount"]?.GetValue<int>());
+        Assert.Equal(1, page["items"]?.AsArray().Count);
+        Assert.Equal("Completed todo", page["items"]?[0]?["title"]?.GetValue<string>());
+        Assert.True(page["items"]?[0]?["isDone"]?.GetValue<bool>());
+    }
+
+    [Fact]
     public async Task PostTodos_WithValidTitle_CreatesTodo()
     {
         using var factory = new TodoApiTestFactory();

@@ -17,12 +17,20 @@ public class TodoService
 
     // SkipとTakeを使い、必要なページのTodoだけをデータベースから読み取ります。
     // ページングすると、Todoが大量にあっても全件をメモリへ読み込まずに済みます。
-    public async Task<TodoListResponse> GetPageAsync(int page, int pageSize)
+    public async Task<TodoListResponse> GetPageAsync(int page, int pageSize, bool? isDone)
     {
-        var totalCount = await _dbContext.Todos.CountAsync();
+        // IQueryableは、まだDBへ実行していない検索処理を表します。
+        // 条件を追加してからCountAsyncやToListAsyncを呼ぶと、SQLとして実行されます。
+        var query = _dbContext.Todos.AsNoTracking();
 
-        var todos = await _dbContext.Todos
-            .AsNoTracking()
+        if (isDone.HasValue)
+        {
+            query = query.Where(todo => todo.IsDone == isDone.Value);
+        }
+
+        var totalCount = await query.CountAsync();
+
+        var todos = await query
             .OrderBy(todo => todo.Id)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
