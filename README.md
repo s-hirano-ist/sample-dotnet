@@ -139,6 +139,29 @@ curl -i http://localhost:5191/ \
 Access-Control-Allow-Origin: http://localhost:3000
 ```
 
+## 認証・認可を確認する
+
+Todoの作成・更新・削除には、`X-API-Key`ヘッダーが必要です。一覧取得やSwagger UIなどのGET操作は公開しています。
+
+認証付きでTodoを作成します。
+
+```bash
+curl -X POST http://localhost:5191/todos \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: dev-only-todo-api-key" \
+  -d '{"title":"Learn authentication"}'
+```
+
+APIキーなしで作成すると`401 Unauthorized`になります。
+
+```bash
+curl -i -X POST http://localhost:5191/todos \
+  -H "Content-Type: application/json" \
+  -d '{"title":"This should fail"}'
+```
+
+今回のAPIキーは学習用です。本番環境では、キーをソースコードや通常の設定ファイルに直接書かず、環境変数やシークレット管理サービスを利用します。
+
 ## APIを試す
 
 Todoを作成します。
@@ -146,6 +169,7 @@ Todoを作成します。
 ```bash
 curl -X POST http://localhost:5191/todos \
   -H "Content-Type: application/json" \
+  -H "X-API-Key: dev-only-todo-api-key" \
   -d '{"title":"Learn .NET Minimal API"}'
 ```
 
@@ -166,6 +190,7 @@ Todoを完了にします。
 ```bash
 curl -X PUT http://localhost:5191/todos/1 \
   -H "Content-Type: application/json" \
+  -H "X-API-Key: dev-only-todo-api-key" \
   -d '{"isDone":true}'
 ```
 
@@ -174,13 +199,15 @@ Todoのタイトルを変更します。
 ```bash
 curl -X PUT http://localhost:5191/todos/1 \
   -H "Content-Type: application/json" \
+  -H "X-API-Key: dev-only-todo-api-key" \
   -d '{"title":"Learn C# and ASP.NET Core"}'
 ```
 
 Todoを削除します。
 
 ```bash
-curl -X DELETE http://localhost:5191/todos/1
+curl -X DELETE http://localhost:5191/todos/1 \
+  -H "X-API-Key: dev-only-todo-api-key"
 ```
 
 ## ビルドする

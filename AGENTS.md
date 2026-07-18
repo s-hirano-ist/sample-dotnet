@@ -6,7 +6,7 @@
 
 ## 現在の学習テーマ
 
-現在は「CORSを設定する」ステップです。
+現在は「認証・認可を追加する」ステップです。
 
 これまでの実装で学んだこと:
 
@@ -81,6 +81,14 @@
 - 許可するオリジンを`appsettings.json`で管理する方法
 - 許可したOriginがレスポンスヘッダーへ入ることをテストする方法
 
+今回の認証・認可で学ぶこと:
+
+- 認証（誰かを確認する）と認可（何を許可するか）の違い
+- `AddAuthentication`で認証方式を登録する方法
+- `UseAuthentication`と`UseAuthorization`の役割
+- `RequireAuthorization`で特定のエンドポイントを保護する方法
+- `AuthenticationHandler`でHTTPヘッダーを確認する基本
+
 現在のAPI入口は `TodoApi/Program.cs`、DB接続は `TodoApi/Data/TodoDbContext.cs`、Todo操作ロジックは `TodoApi/Services/TodoService.cs`、テストは `TodoApi.Tests/TodoApiTests.cs` にあります。
 
 ## 今後の拡張/学習計画
@@ -147,7 +155,7 @@
 - OpenAPI/Swaggerを追加する 完了（OpenAPI JSONと開発用Swagger UIを公開）
 - ログ出力を確認する 完了
 - 設定値を `appsettings.json` で管理する 完了（接続文字列・ログ・CORS設定）
-- CORS、認証、認可を必要に応じて追加する（CORS完了）
+- CORS、認証、認可を必要に応じて追加する（CORS完了、APIキー認証・認可完了）
 
 完了目安:
 

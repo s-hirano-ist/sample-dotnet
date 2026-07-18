@@ -73,6 +73,22 @@ public class TodoApiTests
         );
     }
 
+    [Fact]
+    public async Task PostTodo_WithoutApiKey_ReturnsUnauthorized()
+    {
+        using var factory = new TodoApiTestFactory();
+        using var client = factory.CreateClient();
+
+        // テストファクトリは通常リクエストへAPIキーを付けます。
+        // ここではヘッダーを削除して、未認証のリクエストを再現します。
+        client.DefaultRequestHeaders.Remove("X-API-Key");
+
+        var response = await client.PostAsJsonAsync("/todos", new { title = "No key" });
+
+        // 認証情報がないため、HTTP 401 Unauthorizedを期待します。
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
     // [Fact] はxUnitの属性です。
     // このメソッドが「1つのテストケース」であることを表します。
     [Fact]
@@ -349,6 +365,14 @@ public class TodoApiTests
 // 本番用のSQLiteファイルではなく、テストごとにメモリ上のSQLiteを使います。
 public class TodoApiTestFactory : WebApplicationFactory<Program>
 {
+    protected override void ConfigureClient(HttpClient client)
+    {
+        base.ConfigureClient(client);
+
+        // 既存の作成・更新・削除テストは、認証済みクライアントとして実行します。
+        client.DefaultRequestHeaders.Add("X-API-Key", "dev-only-todo-api-key");
+    }
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         // Program.csの開発環境用設定をテストでも有効にします。

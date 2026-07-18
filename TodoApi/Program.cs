@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 
 // WebApplication.CreateBuilder は、ASP.NET Coreアプリを作るための準備をします。
@@ -24,6 +25,15 @@ builder.Services.AddCors(options =>
     });
 });
 
+// AddAuthenticationは、リクエストの認証方法を登録します。
+// 今回はX-API-Keyを確認する独自の認証ハンドラーを使います。
+builder.Services
+    .AddAuthentication("ApiKey")
+    .AddScheme<AuthenticationSchemeOptions, ApiKeyAuthenticationHandler>("ApiKey", _ => { });
+
+// AddAuthorizationは、認証済みかどうかによってエンドポイントへのアクセスを制御します。
+builder.Services.AddAuthorization();
+
 // AddOpenApi は、アプリのエンドポイントからOpenAPI形式の仕様書を作る機能を登録します。
 // OpenAPIは、APIのURL、HTTPメソッド、リクエスト、レスポンスなどを機械可読な形で表す標準です。
 builder.Services.AddOpenApi();
@@ -42,6 +52,10 @@ var app = builder.Build();
 
 // 登録したCORSポリシーをHTTPリクエストへ適用します。
 app.UseCors("Frontend");
+
+// 認証・認可ミドルウェアをエンドポイントより前に配置します。
+app.UseAuthentication();
+app.UseAuthorization();
 
 // MapOpenApi は、OpenAPI仕様書をJSONで公開するエンドポイントを追加します。
 // 開発中は /openapi/v1.json にアクセスすると、API仕様を確認できます。
@@ -112,7 +126,8 @@ app.MapPost("/todos", async (CreateTodoRequest request, TodoService todoService)
     // 第1引数には、作成されたリソースのURLを入れます。
     return Results.Created($"/todos/{todo.Id}", todo);
 })
-    .WithName("CreateTodo");
+    .WithName("CreateTodo")
+    .RequireAuthorization();
 
 // PUT /todos/1 は、指定したTodoを更新します。
 // UpdateTodoRequestでは Title と IsDone を nullable にしているので、片方だけ更新できます。
@@ -134,7 +149,8 @@ app.MapPut("/todos/{id:int}", async (int id, UpdateTodoRequest request, TodoServ
 
     return Results.Ok(updatedTodo);
 })
-    .WithName("UpdateTodo");
+    .WithName("UpdateTodo")
+    .RequireAuthorization();
 
 // DELETE /todos/1 は、指定したTodoを削除します。
 app.MapDelete("/todos/{id:int}", async (int id, TodoService todoService) =>
@@ -150,7 +166,8 @@ app.MapDelete("/todos/{id:int}", async (int id, TodoService todoService) =>
     // 削除成功時は、返すデータがないので204を使います。
     return Results.NoContent();
 })
-    .WithName("DeleteTodo");
+    .WithName("DeleteTodo")
+    .RequireAuthorization();
 
 // アプリを起動して、HTTPリクエストを待ち受けます。
 app.Run();
