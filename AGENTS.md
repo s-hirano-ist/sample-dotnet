@@ -6,7 +6,7 @@
 
 ## 現在の学習テーマ
 
-現在は「ログ出力を確認する」ステップです。
+現在は「CORSを設定する」ステップです。
 
 これまでの実装で学んだこと:
 
@@ -73,6 +73,14 @@
 - `appsettings.json`でログレベルを設定する方法
 - ログに入力内容を出さず、必要な情報だけを記録する考え方
 
+今回のCORSで学ぶこと:
+
+- ブラウザの同一オリジン制約とCORSの役割
+- `AddCors`でCORSポリシーをDIへ登録する方法
+- `UseCors`でHTTPリクエストへポリシーを適用する方法
+- 許可するオリジンを`appsettings.json`で管理する方法
+- 許可したOriginがレスポンスヘッダーへ入ることをテストする方法
+
 現在のAPI入口は `TodoApi/Program.cs`、DB接続は `TodoApi/Data/TodoDbContext.cs`、Todo操作ロジックは `TodoApi/Services/TodoService.cs`、テストは `TodoApi.Tests/TodoApiTests.cs` にあります。
 
 ## 今後の拡張/学習計画
@@ -138,8 +146,8 @@
 
 - OpenAPI/Swaggerを追加する 完了（OpenAPI JSONと開発用Swagger UIを公開）
 - ログ出力を確認する 完了
-- 設定値を `appsettings.json` で管理する
-- CORS、認証、認可を必要に応じて追加する
+- 設定値を `appsettings.json` で管理する 完了（接続文字列・ログ・CORS設定）
+- CORS、認証、認可を必要に応じて追加する（CORS完了）
 
 完了目安:
 

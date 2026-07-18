@@ -122,6 +122,23 @@ warn: TodoService[0]
 
 `ILogger<TodoService>`はDIコンテナから自動で渡されます。`{TodoId}`のようなプレースホルダーを使うと、ログメッセージと値を分けて扱える構造化ログになります。タイトル本文はログに出さず、必要最小限の情報だけを記録しています。
 
+## CORSを確認する
+
+CORSは、ブラウザ上のフロントエンドから別のオリジンにあるAPIを呼び出すときの許可ルールです。現在は`appsettings.json`にある`http://localhost:3000`だけを許可しています。
+
+許可されたOriginを付けてリクエストすると、CORSヘッダーが返ります。
+
+```bash
+curl -i http://localhost:5191/ \
+  -H "Origin: http://localhost:3000"
+```
+
+レスポンスに次のヘッダーがあれば、CORS設定が適用されています。
+
+```text
+Access-Control-Allow-Origin: http://localhost:3000
+```
+
 ## APIを試す
 
 Todoを作成します。

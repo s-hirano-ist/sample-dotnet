@@ -52,6 +52,27 @@ public class TodoApiTests
         Assert.Contains("Swagger UI", body);
     }
 
+    [Fact]
+    public async Task GetRoot_WithAllowedOrigin_ReturnsCorsHeader()
+    {
+        using var factory = new TodoApiTestFactory();
+        using var client = factory.CreateClient();
+
+        // ブラウザから送られるOriginヘッダーをテストで再現します。
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/");
+        request.Headers.Add("Origin", "http://localhost:3000");
+
+        var response = await client.SendAsync(request);
+
+        response.EnsureSuccessStatusCode();
+
+        // 許可したOriginだけがレスポンスヘッダーに返ることを確認します。
+        Assert.Equal(
+            "http://localhost:3000",
+            response.Headers.GetValues("Access-Control-Allow-Origin").Single()
+        );
+    }
+
     // [Fact] はxUnitの属性です。
     // このメソッドが「1つのテストケース」であることを表します。
     [Fact]

@@ -4,6 +4,26 @@ using Microsoft.EntityFrameworkCore;
 // args には、コマンドライン引数が入ります。今は特別な引数を使っていません。
 var builder = WebApplication.CreateBuilder(args);
 
+// CORSは、ブラウザから別のオリジンにあるAPIを呼び出すときの許可ルールです。
+// 許可するオリジンはコードに直接書かず、appsettings.jsonから読み込みます。
+var allowedOrigins = builder.Configuration
+    .GetSection("Cors:AllowedOrigins")
+    .GetChildren()
+    .Select(section => section.Value)
+    .OfType<string>()
+    .ToArray();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("Frontend", policy =>
+    {
+        policy
+            .WithOrigins(allowedOrigins)
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
 // AddOpenApi は、アプリのエンドポイントからOpenAPI形式の仕様書を作る機能を登録します。
 // OpenAPIは、APIのURL、HTTPメソッド、リクエスト、レスポンスなどを機械可読な形で表す標準です。
 builder.Services.AddOpenApi();
@@ -19,6 +39,9 @@ builder.Services.AddScoped<TodoService>();
 
 // Build を呼ぶと、実際に起動できるWebアプリケーションの本体が作られます。
 var app = builder.Build();
+
+// 登録したCORSポリシーをHTTPリクエストへ適用します。
+app.UseCors("Frontend");
 
 // MapOpenApi は、OpenAPI仕様書をJSONで公開するエンドポイントを追加します。
 // 開発中は /openapi/v1.json にアクセスすると、API仕様を確認できます。
