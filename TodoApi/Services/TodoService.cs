@@ -17,7 +17,7 @@ public class TodoService
 
     // SkipとTakeを使い、必要なページのTodoだけをデータベースから読み取ります。
     // ページングすると、Todoが大量にあっても全件をメモリへ読み込まずに済みます。
-    public async Task<TodoListResponse> GetPageAsync(int page, int pageSize, bool? isDone)
+    public async Task<TodoListResponse> GetPageAsync(int page, int pageSize, bool? isDone, string? search)
     {
         // IQueryableは、まだDBへ実行していない検索処理を表します。
         // 条件を追加してからCountAsyncやToListAsyncを呼ぶと、SQLとして実行されます。
@@ -26,6 +26,17 @@ public class TodoService
         if (isDone.HasValue)
         {
             query = query.Where(todo => todo.IsDone == isDone.Value);
+        }
+
+        // Trimで前後の空白を取り除き、空文字列は検索条件にしません。
+        var searchTerm = search?.Trim() ?? string.Empty;
+
+        if (searchTerm.Length > 0)
+        {
+            // DBによって文字列比較の大文字・小文字の扱いが異なるため、
+            // 両方を小文字化して比較し、APIの挙動を一定にします。
+            var normalizedSearchTerm = searchTerm.ToLowerInvariant();
+            query = query.Where(todo => todo.Title.ToLower().Contains(normalizedSearchTerm));
         }
 
         var totalCount = await query.CountAsync();

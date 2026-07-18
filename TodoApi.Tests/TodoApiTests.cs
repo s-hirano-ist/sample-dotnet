@@ -282,6 +282,33 @@ public class TodoApiTests
     }
 
     [Fact]
+    public async Task GetTodos_WithSearch_ReturnsTitlesContainingSearchTerm()
+    {
+        using var factory = new TodoApiTestFactory();
+        using var client = factory.CreateClient();
+
+        foreach (var title in new[] { "Learn C#", "Learn ASP.NET Core", "Read a book" })
+        {
+            var createResponse = await client.PostAsJsonAsync("/todos", new { title });
+            createResponse.EnsureSuccessStatusCode();
+        }
+
+        // search=learnに一致する2件だけが返ることを確認します。
+        var response = await client.GetAsync("/todos?search=learn");
+        response.EnsureSuccessStatusCode();
+
+        var page = await response.Content.ReadFromJsonAsync<JsonObject>();
+        Assert.NotNull(page);
+        Assert.Equal(2, page["totalCount"]?.GetValue<int>());
+        var items = page["items"]?.AsArray();
+        Assert.NotNull(items);
+        Assert.Equal(2, items.Count);
+        var titles = items.Select(item => item?["title"]?.GetValue<string>()).ToArray();
+        Assert.Contains("Learn C#", titles);
+        Assert.Contains("Learn ASP.NET Core", titles);
+    }
+
+    [Fact]
     public async Task PostTodos_WithValidTitle_CreatesTodo()
     {
         using var factory = new TodoApiTestFactory();

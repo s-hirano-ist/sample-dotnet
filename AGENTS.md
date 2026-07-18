@@ -175,6 +175,13 @@
 - `Where`で完了状態に一致するTodoだけを取得する方法
 - フィルター後の件数を基準にページングする考え方
 
+今回のタイトル検索で学ぶこと:
+
+- 文字列検索用のクエリパラメーターを受け取る方法
+- `Trim`で入力の前後の空白を扱う方法
+- `Contains`をEF CoreのDB検索へ変換する考え方
+- 複数の検索条件を同じ`IQueryable`へ組み合わせる方法
+
 現在のAPI入口は `TodoApi/Program.cs`、DB接続は `TodoApi/Data/TodoDbContext.cs`、Todo操作ロジックは `TodoApi/Services/TodoService.cs`、テストは `TodoApi.Tests/TodoApiTests.cs` にあります。
 
 ## 今後の拡張/学習計画
@@ -252,6 +259,7 @@
 - 予期しない例外の共通処理を追加する 完了
 - Todo一覧にページングを追加する 完了
 - Todo一覧に完了状態フィルターを追加する 完了
+- Todo一覧にタイトル検索を追加する 完了
 
 完了目安:
 

@@ -189,6 +189,7 @@ app.MapGet("/todos", async (
     int? page,
     int? pageSize,
     bool? isDone,
+    string? search,
     TodoService todoService
 ) =>
 {
@@ -202,7 +203,7 @@ app.MapGet("/todos", async (
         return Results.BadRequest(validation.Error);
     }
 
-    var todos = await todoService.GetPageAsync(currentPage, currentPageSize, isDone);
+    var todos = await todoService.GetPageAsync(currentPage, currentPageSize, isDone, search);
 
     return Results.Ok(todos);
 })
