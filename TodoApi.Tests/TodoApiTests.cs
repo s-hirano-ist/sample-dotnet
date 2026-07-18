@@ -309,6 +309,44 @@ public class TodoApiTests
     }
 
     [Fact]
+    public async Task GetTodos_WithSortByTitleDescending_ReturnsDescendingTitles()
+    {
+        using var factory = new TodoApiTestFactory();
+        using var client = factory.CreateClient();
+
+        foreach (var title in new[] { "Alpha", "Charlie", "Bravo" })
+        {
+            var createResponse = await client.PostAsJsonAsync("/todos", new { title });
+            createResponse.EnsureSuccessStatusCode();
+        }
+
+        var response = await client.GetAsync("/todos?sortBy=title&sortOrder=desc");
+        response.EnsureSuccessStatusCode();
+
+        var page = await response.Content.ReadFromJsonAsync<JsonObject>();
+        Assert.NotNull(page);
+        var items = page["items"]?.AsArray();
+        Assert.NotNull(items);
+        Assert.Equal("Charlie", items[0]?["title"]?.GetValue<string>());
+        Assert.Equal("Bravo", items[1]?["title"]?.GetValue<string>());
+        Assert.Equal("Alpha", items[2]?["title"]?.GetValue<string>());
+    }
+
+    [Fact]
+    public async Task GetTodos_WithUnsupportedSortBy_ReturnsBadRequest()
+    {
+        using var factory = new TodoApiTestFactory();
+        using var client = factory.CreateClient();
+
+        var response = await client.GetAsync("/todos?sortBy=unknown");
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var error = await response.Content.ReadFromJsonAsync<JsonObject>();
+        Assert.NotNull(error);
+        Assert.Equal("sort_by_invalid", error["code"]?.GetValue<string>());
+    }
+
+    [Fact]
     public async Task PostTodos_WithValidTitle_CreatesTodo()
     {
         using var factory = new TodoApiTestFactory();

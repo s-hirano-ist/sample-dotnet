@@ -182,6 +182,13 @@
 - `Contains`をEF CoreのDB検索へ変換する考え方
 - 複数の検索条件を同じ`IQueryable`へ組み合わせる方法
 
+今回のソートで学ぶこと:
+
+- `OrderBy`と`OrderByDescending`でDB検索結果を並び替える方法
+- `ThenBy`で同じ値の並び順を安定させる考え方
+- 利用可能なソート項目をホワイトリストで制限する方法
+- 外部入力をSQLへ直接渡さない設計
+
 現在のAPI入口は `TodoApi/Program.cs`、DB接続は `TodoApi/Data/TodoDbContext.cs`、Todo操作ロジックは `TodoApi/Services/TodoService.cs`、テストは `TodoApi.Tests/TodoApiTests.cs` にあります。
 
 ## 今後の拡張/学習計画
@@ -260,6 +267,7 @@
 - Todo一覧にページングを追加する 完了
 - Todo一覧に完了状態フィルターを追加する 完了
 - Todo一覧にタイトル検索を追加する 完了
+- Todo一覧のソートを追加する 完了
 
 完了目安:
 

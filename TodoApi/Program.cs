@@ -190,6 +190,8 @@ app.MapGet("/todos", async (
     int? pageSize,
     bool? isDone,
     string? search,
+    string? sortBy,
+    string? sortOrder,
     TodoService todoService
 ) =>
 {
@@ -203,7 +205,21 @@ app.MapGet("/todos", async (
         return Results.BadRequest(validation.Error);
     }
 
-    var todos = await todoService.GetPageAsync(currentPage, currentPageSize, isDone, search);
+    var sortValidation = TodoSortValidation.Validate(sortBy, sortOrder);
+
+    if (!sortValidation.IsValid)
+    {
+        return Results.BadRequest(sortValidation.Error);
+    }
+
+    var todos = await todoService.GetPageAsync(
+        currentPage,
+        currentPageSize,
+        isDone,
+        search,
+        sortBy,
+        sortOrder
+    );
 
     return Results.Ok(todos);
 })

@@ -17,7 +17,14 @@ public class TodoService
 
     // SkipとTakeを使い、必要なページのTodoだけをデータベースから読み取ります。
     // ページングすると、Todoが大量にあっても全件をメモリへ読み込まずに済みます。
-    public async Task<TodoListResponse> GetPageAsync(int page, int pageSize, bool? isDone, string? search)
+    public async Task<TodoListResponse> GetPageAsync(
+        int page,
+        int pageSize,
+        bool? isDone,
+        string? search,
+        string? sortBy,
+        string? sortOrder
+    )
     {
         // IQueryableは、まだDBへ実行していない検索処理を表します。
         // 条件を追加してからCountAsyncやToListAsyncを呼ぶと、SQLとして実行されます。
@@ -41,8 +48,21 @@ public class TodoService
 
         var totalCount = await query.CountAsync();
 
+        var normalizedSortBy = (sortBy ?? TodoSortValidation.DefaultSortBy).Trim().ToLowerInvariant();
+        var normalizedSortOrder = (sortOrder ?? TodoSortValidation.DefaultSortOrder).Trim().ToLowerInvariant();
+
+        // 外部入力をそのままSQLに渡さず、許可したプロパティだけを分岐で選びます。
+        query = normalizedSortBy switch
+        {
+            "title" when normalizedSortOrder == "desc" => query.OrderByDescending(todo => todo.Title).ThenByDescending(todo => todo.Id),
+            "title" => query.OrderBy(todo => todo.Title).ThenBy(todo => todo.Id),
+            "createdat" when normalizedSortOrder == "desc" => query.OrderByDescending(todo => todo.CreatedAt).ThenByDescending(todo => todo.Id),
+            "createdat" => query.OrderBy(todo => todo.CreatedAt).ThenBy(todo => todo.Id),
+            "id" when normalizedSortOrder == "desc" => query.OrderByDescending(todo => todo.Id),
+            _ => query.OrderBy(todo => todo.Id)
+        };
+
         var todos = await query
-            .OrderBy(todo => todo.Id)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
