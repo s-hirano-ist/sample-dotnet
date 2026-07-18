@@ -42,7 +42,8 @@ dotnet --version
 │   └── learning/
 │       ├── 01-aspnet-core-parameters.md
 │       ├── 02-dependency-injection.md
-│       └── 03-middleware-pipeline.md
+│       ├── 03-middleware-pipeline.md
+│       └── 04-async-await.md
 ├── SampleDotnet.slnx
 ├── dotnet-tools.json
 ├── TodoApi/

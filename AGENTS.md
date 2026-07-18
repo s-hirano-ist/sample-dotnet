@@ -6,7 +6,7 @@
 
 ## 現在の学習テーマ
 
-現在は「Middlewareとリクエストパイプラインを基礎から理解する」ステップです。
+現在は「async、await、Taskを基礎から理解する」ステップです。
 
 これまでの実装で学んだこと:
 
@@ -209,6 +209,7 @@
 - `docs/learning/01-aspnet-core-parameters.md`
 - `docs/learning/02-dependency-injection.md`
 - `docs/learning/03-middleware-pipeline.md`
+- `docs/learning/04-async-await.md`
 
 現在のAPI入口は `TodoApi/Program.cs`、DB接続は `TodoApi/Data/TodoDbContext.cs`、Todo操作ロジックは `TodoApi/Services/TodoService.cs`、テストは `TodoApi.Tests/TodoApiTests.cs` にあります。
 
