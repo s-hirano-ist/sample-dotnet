@@ -24,6 +24,17 @@ var app = builder.Build();
 // 開発中は /openapi/v1.json にアクセスすると、API仕様を確認できます。
 app.MapOpenApi();
 
+// Swagger UIは、OpenAPI仕様書をブラウザで見たり、APIを試したりするための画面です。
+// API仕様書そのものは公開できますが、操作画面は開発環境だけで有効にします。
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwaggerUI(options =>
+    {
+        // Swagger UIに、前で公開したOpenAPI JSONの場所を教えます。
+        options.SwaggerEndpoint("/openapi/v1.json", "Todo API v1");
+    });
+}
+
 // Migrate は、未適用のマイグレーションをデータベースへ反映します。
 // 今回はハンズオンを簡単にするため、起動時にSQLiteのテーブルを自動作成します。
 using (var scope = app.Services.CreateScope())

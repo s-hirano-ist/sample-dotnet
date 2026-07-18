@@ -5,6 +5,7 @@
 ASP.NET Core Minimal APIで実装し、TodoはSQLiteに保存します。Entity Framework Coreを使ってC#のコードからデータベースを操作します。
 
 OpenAPI仕様書は、アプリ起動後に `http://localhost:5191/openapi/v1.json` で確認できます。ポート番号は起動時の表示に合わせてください。
+Swagger UIは `http://localhost:5191/swagger` で確認できます。Swagger UIから各APIをブラウザ上で試すこともできます。
 
 ## 必要なもの
 
@@ -94,7 +95,17 @@ OpenAPI仕様書を確認:
 curl http://localhost:5191/openapi/v1.json
 ```
 
-OpenAPIは、APIのURL、HTTPメソッド、リクエスト、レスポンスなどをJSONで表す標準です。今回は仕様書JSONの公開までを行い、Swagger UIは次の段階で追加します。
+OpenAPIは、APIのURL、HTTPメソッド、リクエスト、レスポンスなどをJSONで表す標準です。
+
+Swagger UIを確認:
+
+ブラウザで次のURLを開きます。
+
+```text
+http://localhost:5191/swagger
+```
+
+Swagger UIはOpenAPI仕様書を読み込み、APIの一覧表示やリクエスト送信を行える画面です。今回は開発環境でのみ有効にしています。
 
 ## APIを試す
 
@@ -190,6 +201,7 @@ dotnet test
 - `DELETE /todos/{id}` でTodoを削除できる
 - 存在しないIDの `DELETE /todos/{id}` が `404 Not Found` を返す
 - `GET /openapi/v1.json` でOpenAPI仕様書を取得できる
+- 開発環境の`/swagger`でSwagger UIを表示できる
 
 ## マイグレーション
 

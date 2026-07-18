@@ -6,7 +6,7 @@
 
 ## 現在の学習テーマ
 
-現在は「OpenAPIでAPI仕様を確認する」ステップです。
+現在は「Swagger UIでAPI仕様を操作する」ステップです。
 
 これまでの実装で学んだこと:
 
@@ -57,6 +57,13 @@
 - `MapOpenApi`で仕様書のHTTPエンドポイントを公開する方法
 - `WithName`でエンドポイントに識別名を付ける考え方
 - API仕様の公開自体も自動テストで確認する方法
+
+今回のSwagger UIで学ぶこと:
+
+- OpenAPI JSONとSwagger UIの役割の違い
+- `UseSwaggerUI`で既存のOpenAPI仕様書を画面に表示する方法
+- 開発環境だけで有効にする条件分岐
+- APIドキュメントの画面も自動テストで確認する考え方
 
 現在のAPI入口は `TodoApi/Program.cs`、DB接続は `TodoApi/Data/TodoDbContext.cs`、Todo操作ロジックは `TodoApi/Services/TodoService.cs`、テストは `TodoApi.Tests/TodoApiTests.cs` にあります。
 
@@ -121,7 +128,7 @@
 
 ### 6. 本番品質に近づける
 
-- OpenAPI/Swaggerを追加する 完了（OpenAPI JSONを公開）
+- OpenAPI/Swaggerを追加する 完了（OpenAPI JSONと開発用Swagger UIを公開）
 - ログ出力を確認する
 - 設定値を `appsettings.json` で管理する
 - CORS、認証、認可を必要に応じて追加する

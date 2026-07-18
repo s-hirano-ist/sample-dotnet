@@ -36,6 +36,22 @@ public class TodoApiTests
         Assert.NotNull(document["paths"]?["/todos"]);
     }
 
+    [Fact]
+    public async Task GetSwaggerUi_ReturnsHtmlPage()
+    {
+        using var factory = new TodoApiTestFactory();
+        using var client = factory.CreateClient();
+
+        // Swagger UIの画面は、開発環境で /swagger/index.html に公開されます。
+        var response = await client.GetAsync("/swagger/index.html");
+
+        response.EnsureSuccessStatusCode();
+
+        // Swagger UIはブラウザで表示するHTMLを返します。
+        var body = await response.Content.ReadAsStringAsync();
+        Assert.Contains("Swagger UI", body);
+    }
+
     // [Fact] はxUnitの属性です。
     // このメソッドが「1つのテストケース」であることを表します。
     [Fact]
@@ -314,6 +330,9 @@ public class TodoApiTestFactory : WebApplicationFactory<Program>
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        // Program.csの開発環境用設定をテストでも有効にします。
+        builder.UseEnvironment("Development");
+
         builder.ConfigureServices(services =>
         {
             // Program.csで登録した本番用DbContext設定を探します。
