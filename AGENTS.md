@@ -6,7 +6,7 @@
 
 ## 現在の学習テーマ
 
-現在は「Request IDでリクエストを追跡する」ステップです。
+現在は「HTTPアクセスログで処理を観測する」ステップです。
 
 これまでの実装で学んだこと:
 
@@ -145,6 +145,13 @@
 - `BeginScope`でログへリクエスト情報を追加する方法
 - クライアント入力をそのままログへ出さない考え方
 
+今回のHTTPアクセスログで学ぶこと:
+
+- `Stopwatch`で処理時間を測る方法
+- `try`と`finally`で成功・失敗に関係なくログを残す方法
+- HTTPメソッド、パス、ステータス、処理時間の構造化ログ
+- ログへ出してよい情報と出してはいけない情報の判断
+
 現在のAPI入口は `TodoApi/Program.cs`、DB接続は `TodoApi/Data/TodoDbContext.cs`、Todo操作ロジックは `TodoApi/Services/TodoService.cs`、テストは `TodoApi.Tests/TodoApiTests.cs` にあります。
 
 ## 今後の拡張/学習計画
@@ -218,6 +225,7 @@
 - Redisで分散レート制限を追加する 完了（Redisモードを任意で有効化）
 - Redisのヘルスチェックを追加する 完了
 - Request IDを追加する 完了
+- HTTPアクセスログを追加する 完了
 
 完了目安:
 

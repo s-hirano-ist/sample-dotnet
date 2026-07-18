@@ -125,6 +125,9 @@ var app = builder.Build();
 // すべてのリクエストにRequest IDを付けるため、早い段階でミドルウェアを実行します。
 app.UseMiddleware<RequestIdMiddleware>();
 
+// HTTPの結果と処理時間を記録するため、Request IDの後に実行します。
+app.UseMiddleware<RequestLoggingMiddleware>();
+
 // 登録したCORSポリシーをHTTPリクエストへ適用します。
 app.UseCors("Frontend");
 
