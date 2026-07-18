@@ -96,9 +96,15 @@ else
 
 // AddHealthChecksは、アプリが正常に動作できるか確認する機能を登録します。
 // AddDbContextCheckは、TodoDbContextを使ってSQLiteへ接続できるかも確認対象にします。
-builder.Services
+var healthChecks = builder.Services
     .AddHealthChecks()
     .AddDbContextCheck<TodoDbContext>();
+
+if (useRedisRateLimit)
+{
+    // Redisモードでは、DBに加えてRedisも正常性チェックの対象にします。
+    healthChecks.AddCheck<RedisHealthCheck>("redis");
+}
 
 // AddOpenApi は、アプリのエンドポイントからOpenAPI形式の仕様書を作る機能を登録します。
 // OpenAPIは、APIのURL、HTTPメソッド、リクエスト、レスポンスなどを機械可読な形で表す標準です。

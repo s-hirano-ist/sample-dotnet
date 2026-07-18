@@ -101,7 +101,7 @@ Todo API is running.
 curl -i http://localhost:5191/health
 ```
 
-アプリとSQLiteへ接続できていれば`200 OK`が返ります。監視システムやロードバランサーは、このような専用URLを定期的に確認します。
+アプリとSQLiteへ接続できていれば`200 OK`が返ります。RedisモードではRedisへの接続も確認し、Redisが利用できない場合は`503 Service Unavailable`を返します。監視システムやロードバランサーは、このような専用URLを定期的に確認します。
 
 ## レート制限を確認する
 
