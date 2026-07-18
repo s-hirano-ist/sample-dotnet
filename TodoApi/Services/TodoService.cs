@@ -1,0 +1,91 @@
+using Microsoft.EntityFrameworkCore;
+
+// TodoServiceは、Todoを操作する処理をまとめたクラスです。
+// 今回からListではなく、Entity Framework Coreを通してSQLiteに保存します。
+public class TodoService
+{
+    private readonly TodoDbContext _dbContext;
+
+    // コンストラクタでTodoDbContextを受け取ります。
+    // ASP.NET CoreのDIが、自動でTodoDbContextを渡してくれます。
+    public TodoService(TodoDbContext dbContext)
+    {
+        _dbContext = dbContext;
+    }
+
+    // IReadOnlyList<T> は「読み取り専用の一覧」を表す型です。
+    // ToListAsync は、データベースからTodo一覧を非同期で読み取ります。
+    public async Task<IReadOnlyList<TodoItem>> GetAllAsync()
+    {
+        return await _dbContext.Todos
+            .OrderBy(todo => todo.Id)
+            .ToListAsync();
+    }
+
+    public async Task<TodoItem?> GetByIdAsync(int id)
+    {
+        // FirstOrDefaultAsync は、条件に合う最初の要素をデータベースから探します。
+        // 見つからない場合は null を返します。
+        return await _dbContext.Todos.FirstOrDefaultAsync(todo => todo.Id == id);
+    }
+
+    public async Task<TodoItem> CreateAsync(CreateTodoRequest request)
+    {
+        // IdはSQLiteが自動採番するので、ここでは指定しません。
+        var todo = new TodoItem(
+            Id: 0,
+            Title: request.Title,
+            IsDone: false,
+            CreatedAt: DateTimeOffset.UtcNow,
+            CompletedAt: null
+        );
+
+        _dbContext.Todos.Add(todo);
+
+        // SaveChangesAsync を呼ぶと、変更内容がSQLiteに保存されます。
+        // ここでSQLiteがIdを採番し、todo.Idにも反映されます。
+        await _dbContext.SaveChangesAsync();
+
+        return todo;
+    }
+
+    public async Task<TodoItem?> UpdateAsync(int id, UpdateTodoRequest request)
+    {
+        var existingTodo = await GetByIdAsync(id);
+
+        if (existingTodo is null)
+        {
+            return null;
+        }
+
+        // ?? は null合体演算子です。
+        // 左側がnullでなければ左側、nullなら右側を使います。
+        var isDone = request.IsDone ?? existingTodo.IsDone;
+
+        existingTodo.Title = request.Title ?? existingTodo.Title;
+        existingTodo.IsDone = isDone;
+        // 完了状態なら完了日時を入れ、未完了なら null に戻します。
+        existingTodo.CompletedAt = isDone
+            ? existingTodo.CompletedAt ?? DateTimeOffset.UtcNow
+            : null;
+
+        await _dbContext.SaveChangesAsync();
+
+        return existingTodo;
+    }
+
+    public async Task<bool> DeleteAsync(int id)
+    {
+        var todo = await GetByIdAsync(id);
+
+        if (todo is null)
+        {
+            return false;
+        }
+
+        _dbContext.Todos.Remove(todo);
+        await _dbContext.SaveChangesAsync();
+
+        return true;
+    }
+}

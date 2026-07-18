@@ -6,7 +6,7 @@
 
 ## 現在の学習テーマ
 
-現在は「バリデーションとエラー表現を整える」ステップです。
+現在は「データベース保存に切り替える」ステップです。
 
 これまでの実装で学んだこと:
 
@@ -34,8 +34,6 @@
 - `IReadOnlyList<T>` で読み取り専用の一覧を返す意図
 - API層と業務ロジックを分ける理由
 
-現在のAPI入口は `TodoApi/Program.cs`、Todo操作ロジックは `TodoApi/Services/InMemoryTodoService.cs`、テストは `TodoApi.Tests/TodoApiTests.cs` にあります。
-
 今回のバリデーションとエラー表現で学ぶこと:
 
 - 入力チェックを専用クラスへまとめる考え方
@@ -43,6 +41,16 @@
 - `static class`、`const`、`static` プロパティの基本
 - 作成時と更新時でバリデーション条件を少し変える設計
 - 異常系テストでAPIの仕様を守る考え方
+
+今回のデータベース保存で学ぶこと:
+
+- SQLiteを使ったローカルDB保存
+- Entity Framework Coreの基本
+- Entity、DbContext、DbSetの役割
+- マイグレーションでテーブル定義を管理する流れ
+- アプリ本体はファイルDB、テストはインメモリSQLiteを使い分ける考え方
+
+現在のAPI入口は `TodoApi/Program.cs`、DB接続は `TodoApi/Data/TodoDbContext.cs`、Todo操作ロジックは `TodoApi/Services/TodoService.cs`、テストは `TodoApi.Tests/TodoApiTests.cs` にあります。
 
 ## 今後の拡張/学習計画
 
@@ -94,9 +102,9 @@
 
 ### 5. データベース保存に切り替える
 
-- インメモリ保存からSQLiteなどの軽量DBへ移行する
-- Entity Framework Coreを導入する
-- マイグレーションでテーブルを作る
+- インメモリ保存からSQLiteなどの軽量DBへ移行する 完了
+- Entity Framework Coreを導入する 完了
+- マイグレーションでテーブルを作る 完了
 
 完了目安:
 

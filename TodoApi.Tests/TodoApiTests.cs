@@ -3,7 +3,11 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json.Nodes;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 // namespace は、このファイル内のクラスが属する名前空間です。
 // API本体の TodoApi と区別するため、テスト側は TodoApi.Tests にしています。
@@ -22,7 +26,7 @@ public class TodoApiTests
     {
         // using var は、変数の使用が終わったら自動でDisposeする書き方です。
         // WebApplicationFactoryはテスト用APIを起動するため、テスト終了時に片付けます。
-        using var factory = new WebApplicationFactory<Program>();
+        using var factory = new TodoApiTestFactory();
 
         // CreateClient は、テスト用APIにリクエストを送るHttpClientを作ります。
         // 実際のlocalhostポートを使わず、メモリ上のAPIへアクセスします。
@@ -47,7 +51,7 @@ public class TodoApiTests
     [Fact]
     public async Task GetTodos_WhenNoTodoExists_ReturnsEmptyArray()
     {
-        using var factory = new WebApplicationFactory<Program>();
+        using var factory = new TodoApiTestFactory();
         using var client = factory.CreateClient();
 
         // まだTodoを作成していない新しいAPIインスタンスなので、一覧は空のはずです。
@@ -69,7 +73,7 @@ public class TodoApiTests
     [Fact]
     public async Task PostTodos_WithValidTitle_CreatesTodo()
     {
-        using var factory = new WebApplicationFactory<Program>();
+        using var factory = new TodoApiTestFactory();
         using var client = factory.CreateClient();
 
         // new { ... } は匿名型です。
@@ -111,7 +115,7 @@ public class TodoApiTests
     [Fact]
     public async Task PostTodos_WithBlankTitle_ReturnsBadRequest()
     {
-        using var factory = new WebApplicationFactory<Program>();
+        using var factory = new TodoApiTestFactory();
         using var client = factory.CreateClient();
 
         // 空白だけのタイトルは不正な入力として扱います。
@@ -136,7 +140,7 @@ public class TodoApiTests
     [Fact]
     public async Task PostTodos_WithTooLongTitle_ReturnsBadRequest()
     {
-        using var factory = new WebApplicationFactory<Program>();
+        using var factory = new TodoApiTestFactory();
         using var client = factory.CreateClient();
 
         // new string('a', 101) は、'a' を101文字並べた文字列を作ります。
@@ -158,7 +162,7 @@ public class TodoApiTests
     [Fact]
     public async Task GetTodo_WithUnknownId_ReturnsNotFound()
     {
-        using var factory = new WebApplicationFactory<Program>();
+        using var factory = new TodoApiTestFactory();
         using var client = factory.CreateClient();
 
         // 999というIDのTodoは作っていないので、見つからないはずです。
@@ -171,7 +175,7 @@ public class TodoApiTests
     [Fact]
     public async Task PutTodo_WithValidRequest_UpdatesTodo()
     {
-        using var factory = new WebApplicationFactory<Program>();
+        using var factory = new TodoApiTestFactory();
         using var client = factory.CreateClient();
 
         var createRequest = new
@@ -205,7 +209,7 @@ public class TodoApiTests
     [Fact]
     public async Task PutTodo_WithUnknownId_ReturnsNotFound()
     {
-        using var factory = new WebApplicationFactory<Program>();
+        using var factory = new TodoApiTestFactory();
         using var client = factory.CreateClient();
 
         var updateRequest = new
@@ -222,7 +226,7 @@ public class TodoApiTests
     [Fact]
     public async Task PutTodo_WithBlankTitle_ReturnsBadRequest()
     {
-        using var factory = new WebApplicationFactory<Program>();
+        using var factory = new TodoApiTestFactory();
         using var client = factory.CreateClient();
 
         var createRequest = new
@@ -251,7 +255,7 @@ public class TodoApiTests
     [Fact]
     public async Task DeleteTodo_WithExistingId_RemovesTodo()
     {
-        using var factory = new WebApplicationFactory<Program>();
+        using var factory = new TodoApiTestFactory();
         using var client = factory.CreateClient();
 
         var createRequest = new
@@ -276,11 +280,44 @@ public class TodoApiTests
     [Fact]
     public async Task DeleteTodo_WithUnknownId_ReturnsNotFound()
     {
-        using var factory = new WebApplicationFactory<Program>();
+        using var factory = new TodoApiTestFactory();
         using var client = factory.CreateClient();
 
         var response = await client.DeleteAsync("/todos/999");
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+}
+
+// TodoApiTestFactoryは、テスト用のアプリ起動設定をまとめたクラスです。
+// 本番用のSQLiteファイルではなく、テストごとにメモリ上のSQLiteを使います。
+public class TodoApiTestFactory : WebApplicationFactory<Program>
+{
+    protected override void ConfigureWebHost(IWebHostBuilder builder)
+    {
+        builder.ConfigureServices(services =>
+        {
+            // Program.csで登録した本番用DbContext設定を探します。
+            var dbContextDescriptor = services.SingleOrDefault(
+                service => service.ServiceType == typeof(DbContextOptions<TodoDbContext>)
+            );
+
+            if (dbContextDescriptor is not null)
+            {
+                services.Remove(dbContextDescriptor);
+            }
+
+            // SQLiteのインメモリDBは、接続が開いている間だけデータが残ります。
+            // そのため、SqliteConnectionをSingletonとして登録し、テスト中は開いたままにします。
+            var connection = new SqliteConnection("DataSource=:memory:");
+            connection.Open();
+
+            services.AddSingleton(connection);
+
+            services.AddDbContext<TodoDbContext>(options =>
+            {
+                options.UseSqlite(connection);
+            });
+        });
     }
 }

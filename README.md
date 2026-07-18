@@ -2,7 +2,7 @@
 
 .NETの学習用に作る、シンプルなTodoアプリのbackend REST APIです。
 
-まずは最小構成として、ASP.NET Core Minimal APIで実装しています。データベースはまだ使わず、Todoはアプリのメモリ上に保存します。そのため、アプリを再起動すると登録したTodoは消えます。
+ASP.NET Core Minimal APIで実装し、TodoはSQLiteに保存します。Entity Framework Coreを使ってC#のコードからデータベースを操作します。
 
 ## 必要なもの
 
@@ -22,7 +22,15 @@ dotnet --version
 .
 ├── README.md
 ├── SampleDotnet.slnx
+├── dotnet-tools.json
 ├── TodoApi/
+│   ├── Data/
+│   │   ├── TodoDbContext.cs
+│   │   └── TodoDbContextFactory.cs
+│   ├── Migrations/
+│   │   ├── 20260711024515_InitialCreate.cs
+│   │   ├── 20260711024515_InitialCreate.Designer.cs
+│   │   └── TodoDbContextModelSnapshot.cs
 │   ├── Models/
 │   │   └── TodoItem.cs
 │   ├── Program.cs
@@ -30,7 +38,7 @@ dotnet --version
 │   │   ├── CreateTodoRequest.cs
 │   │   └── UpdateTodoRequest.cs
 │   ├── Services/
-│   │   └── InMemoryTodoService.cs
+│   │   └── TodoService.cs
 │   ├── TodoApi.csproj
 │   ├── Validation/
 │   │   ├── ApiError.cs
@@ -44,7 +52,7 @@ dotnet --version
 └── mise.toml
 ```
 
-APIの入口は `TodoApi/Program.cs`、Todoのデータ構造は `TodoApi/Models/`、リクエストの形は `TodoApi/Requests/`、Todo操作の処理は `TodoApi/Services/`、入力チェックとエラー形式は `TodoApi/Validation/` にあります。
+APIの入口は `TodoApi/Program.cs`、DB接続は `TodoApi/Data/`、DB変更履歴は `TodoApi/Migrations/`、Todoのデータ構造は `TodoApi/Models/`、リクエストの形は `TodoApi/Requests/`、Todo操作の処理は `TodoApi/Services/`、入力チェックとエラー形式は `TodoApi/Validation/` にあります。
 
 テストは `TodoApi.Tests/TodoApiTests.cs` にあります。
 
@@ -55,6 +63,8 @@ APIの入口は `TodoApi/Program.cs`、Todoのデータ構造は `TodoApi/Models
 ```bash
 dotnet run --project TodoApi
 ```
+
+初回起動時に、SQLiteの `todo.db` が作成されます。`todo.db` はローカル開発用のデータベースなので、git管理対象には入れていません。
 
 起動すると、次のようなURLが表示されます。
 
@@ -154,6 +164,8 @@ dotnet test
 
 現在のテストでは、テスト用にAPIをメモリ上で起動し、`HttpClient` で実際のHTTPリクエストに近い形で確認しています。これにより、curlで手動確認しなくても、APIの基本動作をまとめて検証できます。
 
+テストでは本物の `todo.db` は使わず、テストごとにインメモリSQLiteを作っています。そのため、テスト実行でローカル開発用DBの中身は変わりません。
+
 今ある主なテスト:
 
 - `GET /` が起動確認メッセージを返す
@@ -167,6 +179,27 @@ dotnet test
 - 空タイトルの `PUT /todos/{id}` が `400 Bad Request` を返す
 - `DELETE /todos/{id}` でTodoを削除できる
 - 存在しないIDの `DELETE /todos/{id}` が `404 Not Found` を返す
+
+## マイグレーション
+
+このプロジェクトでは、EF Coreのマイグレーションでデータベースのテーブル定義を管理しています。
+
+ローカルツールを復元する場合:
+
+```bash
+dotnet tool restore
+```
+
+新しいマイグレーションを作成する場合:
+
+```bash
+dotnet tool run dotnet-ef migrations add MigrationName \
+  --project TodoApi/TodoApi.csproj \
+  --startup-project TodoApi/TodoApi.csproj \
+  --output-dir Migrations
+```
+
+今回のアプリは起動時に `Database.Migrate()` を実行するため、未適用のマイグレーションは起動時にSQLiteへ反映されます。
 
 ## よく使うコマンドまとめ
 
@@ -182,4 +215,7 @@ dotnet build
 
 # 自動テストを実行する
 dotnet test
+
+# EF Coreローカルツールを復元する
+dotnet tool restore
 ```
