@@ -6,7 +6,7 @@
 
 ## 現在の学習テーマ
 
-現在は「DI（依存性注入）を基礎から理解する」ステップです。
+現在は「Middlewareとリクエストパイプラインを基礎から理解する」ステップです。
 
 これまでの実装で学んだこと:
 
@@ -208,6 +208,7 @@
 
 - `docs/learning/01-aspnet-core-parameters.md`
 - `docs/learning/02-dependency-injection.md`
+- `docs/learning/03-middleware-pipeline.md`
 
 現在のAPI入口は `TodoApi/Program.cs`、DB接続は `TodoApi/Data/TodoDbContext.cs`、Todo操作ロジックは `TodoApi/Services/TodoService.cs`、テストは `TodoApi.Tests/TodoApiTests.cs` にあります。
 

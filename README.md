@@ -41,7 +41,8 @@ dotnet --version
 ├── docs/
 │   └── learning/
 │       ├── 01-aspnet-core-parameters.md
-│       └── 02-dependency-injection.md
+│       ├── 02-dependency-injection.md
+│       └── 03-middleware-pipeline.md
 ├── SampleDotnet.slnx
 ├── dotnet-tools.json
 ├── TodoApi/
