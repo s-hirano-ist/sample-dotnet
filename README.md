@@ -9,6 +9,8 @@ Swagger UIは `http://localhost:5191/swagger` で確認できます。Swagger UI
 
 Todoの作成・更新・削除や、存在しないTodoへの更新・削除を行うと、ターミナルに構造化ログが出力されます。
 
+アプリとデータベースの状態は `http://localhost:5191/health` で確認できます。
+
 ## 必要なもの
 
 - .NET SDK
@@ -90,6 +92,14 @@ curl http://localhost:5191
 ```text
 Todo API is running.
 ```
+
+ヘルスチェックを確認:
+
+```bash
+curl -i http://localhost:5191/health
+```
+
+アプリとSQLiteへ接続できていれば`200 OK`が返ります。監視システムやロードバランサーは、このような専用URLを定期的に確認します。
 
 OpenAPI仕様書を確認:
 

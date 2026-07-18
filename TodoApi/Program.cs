@@ -34,6 +34,12 @@ builder.Services
 // AddAuthorizationは、認証済みかどうかによってエンドポイントへのアクセスを制御します。
 builder.Services.AddAuthorization();
 
+// AddHealthChecksは、アプリが正常に動作できるか確認する機能を登録します。
+// AddDbContextCheckは、TodoDbContextを使ってSQLiteへ接続できるかも確認対象にします。
+builder.Services
+    .AddHealthChecks()
+    .AddDbContextCheck<TodoDbContext>();
+
 // AddOpenApi は、アプリのエンドポイントからOpenAPI形式の仕様書を作る機能を登録します。
 // OpenAPIは、APIのURL、HTTPメソッド、リクエスト、レスポンスなどを機械可読な形で表す標準です。
 builder.Services.AddOpenApi();
@@ -84,6 +90,11 @@ using (var scope = app.Services.CreateScope())
 // () => ... はラムダ式で、「引数なしで、この値を返す処理」を短く書いています。
 app.MapGet("/", () => "Todo API is running.")
     .WithName("GetApiStatus");
+
+// /healthは、監視システムがアプリとデータベースの状態を確認するためのURLです。
+// 正常ならHTTP 200、異常ならHTTP 503を返します。
+app.MapHealthChecks("/health")
+    .WithName("GetHealth");
 
 // GET /todos は、Todo一覧を返します。
 // Results.Ok はHTTP 200 OKのレスポンスを作ります。

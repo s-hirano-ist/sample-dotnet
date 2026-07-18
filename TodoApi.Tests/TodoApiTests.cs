@@ -122,6 +122,19 @@ public class TodoApiTests
     }
 
     [Fact]
+    public async Task GetHealth_WhenDatabaseIsAvailable_ReturnsOk()
+    {
+        using var factory = new TodoApiTestFactory();
+        using var client = factory.CreateClient();
+
+        // /healthはアプリとテスト用SQLiteの接続状態を確認します。
+        var response = await client.GetAsync("/health");
+
+        // DBへ接続できているので、HTTP 200 OKを期待します。
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
     public async Task GetTodos_WhenNoTodoExists_ReturnsEmptyArray()
     {
         using var factory = new TodoApiTestFactory();
