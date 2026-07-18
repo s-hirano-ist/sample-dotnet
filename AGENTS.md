@@ -6,7 +6,7 @@
 
 ## 現在の学習テーマ
 
-現在は「認証・認可を追加する」ステップです。
+現在は「秘密情報を安全に設定する」ステップです。
 
 これまでの実装で学んだこと:
 
@@ -89,6 +89,14 @@
 - `RequireAuthorization`で特定のエンドポイントを保護する方法
 - `AuthenticationHandler`でHTTPヘッダーを確認する基本
 
+今回の秘密情報管理で学ぶこと:
+
+- 秘密情報を`appsettings.json`へ書かない理由
+- `.NET User Secrets`をローカル開発で使う方法
+- 設定値の優先順位と環境ごとの切り替え
+- テストで本番の秘密情報を使わない方法
+- 本番環境では環境変数やシークレット管理サービスを使う考え方
+
 現在のAPI入口は `TodoApi/Program.cs`、DB接続は `TodoApi/Data/TodoDbContext.cs`、Todo操作ロジックは `TodoApi/Services/TodoService.cs`、テストは `TodoApi.Tests/TodoApiTests.cs` にあります。
 
 ## 今後の拡張/学習計画
@@ -156,6 +164,7 @@
 - ログ出力を確認する 完了
 - 設定値を `appsettings.json` で管理する 完了（接続文字列・ログ・CORS設定）
 - CORS、認証、認可を必要に応じて追加する（CORS完了、APIキー認証・認可完了）
+- 秘密情報を安全に管理する（User Secrets導入完了）
 
 完了目安:
 

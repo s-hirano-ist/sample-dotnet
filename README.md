@@ -143,6 +143,17 @@ Access-Control-Allow-Origin: http://localhost:3000
 
 Todoの作成・更新・削除には、`X-API-Key`ヘッダーが必要です。一覧取得やSwagger UIなどのGET操作は公開しています。
 
+APIキーは`appsettings.json`には保存しません。ローカル開発では.NET User Secretsへ登録します。
+
+初回だけ、TodoApiプロジェクトで次を実行します。
+
+```bash
+dotnet user-secrets init --project TodoApi
+dotnet user-secrets set "Authentication:ApiKey" "dev-only-todo-api-key" --project TodoApi
+```
+
+User Secretsはプロジェクト外のローカル領域に保存されるため、Gitへコミットされません。User Secretsの値は`appsettings.json`より優先して読み込まれます。
+
 認証付きでTodoを作成します。
 
 ```bash

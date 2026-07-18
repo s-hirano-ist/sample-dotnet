@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 // namespace は、このファイル内のクラスが属する名前空間です。
@@ -370,13 +371,23 @@ public class TodoApiTestFactory : WebApplicationFactory<Program>
         base.ConfigureClient(client);
 
         // 既存の作成・更新・削除テストは、認証済みクライアントとして実行します。
-        client.DefaultRequestHeaders.Add("X-API-Key", "dev-only-todo-api-key");
+        client.DefaultRequestHeaders.Add("X-API-Key", "test-api-key");
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         // Program.csの開発環境用設定をテストでも有効にします。
         builder.UseEnvironment("Development");
+
+        // テストでは本物のUser Secretsや環境変数を使わず、テスト専用の設定を追加します。
+        // Dictionaryは「設定キー」と「設定値」の組み合わせを表します。
+        builder.ConfigureAppConfiguration((_, configuration) =>
+        {
+            configuration.AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Authentication:ApiKey"] = "test-api-key"
+            });
+        });
 
         builder.ConfigureServices(services =>
         {
