@@ -151,6 +151,9 @@ public class TodoApiTests
 
         // 制限を超えた場合はHTTP 429 Too Many Requestsを返します。
         Assert.Equal(HttpStatusCode.TooManyRequests, rejectedResponse.StatusCode);
+
+        // Retry-Afterは、再試行までの待ち時間を秒数で伝えます。
+        Assert.Equal("10", rejectedResponse.Headers.RetryAfter?.ToString());
     }
 
     [Fact]

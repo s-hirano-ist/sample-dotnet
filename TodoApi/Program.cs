@@ -37,6 +37,9 @@ builder.Services.AddAuthorization();
 
 // AddRateLimiterは、一定時間内のリクエスト数を制限する機能を登録します。
 // 過剰なアクセスや、意図しない大量リクエストからAPIを守るために使います。
+var rateLimitPermitLimit = builder.Configuration.GetValue<int>("RateLimit:PermitLimit", 10);
+var rateLimitWindowSeconds = builder.Configuration.GetValue<int>("RateLimit:WindowSeconds", 10);
+
 builder.Services.AddRateLimiter(options =>
 {
     // クライアントごとに別の固定ウィンドウを作ります。
@@ -51,8 +54,8 @@ builder.Services.AddRateLimiter(options =>
             partitionKey,
             _ => new FixedWindowRateLimiterOptions
             {
-                PermitLimit = 10,
-                Window = TimeSpan.FromSeconds(10),
+                PermitLimit = rateLimitPermitLimit,
+                Window = TimeSpan.FromSeconds(rateLimitWindowSeconds),
                 QueueLimit = 0
             }
         );
@@ -60,6 +63,13 @@ builder.Services.AddRateLimiter(options =>
 
     // 制限を超えたリクエストにはHTTP 429を返します。
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    // Retry-Afterは、クライアントへ「何秒後に再試行してよいか」を伝えるHTTPヘッダーです。
+    options.OnRejected = (context, _) =>
+    {
+        context.HttpContext.Response.Headers.RetryAfter = rateLimitWindowSeconds.ToString();
+        return ValueTask.CompletedTask;
+    };
 });
 
 // AddHealthChecksは、アプリが正常に動作できるか確認する機能を登録します。
