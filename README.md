@@ -40,7 +40,8 @@ dotnet --version
 ├── README.md
 ├── docs/
 │   └── learning/
-│       └── 01-aspnet-core-parameters.md
+│       ├── 01-aspnet-core-parameters.md
+│       └── 02-dependency-injection.md
 ├── SampleDotnet.slnx
 ├── dotnet-tools.json
 ├── TodoApi/
