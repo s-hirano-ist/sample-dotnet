@@ -122,6 +122,9 @@ builder.Services.AddScoped<TodoService>();
 // Build を呼ぶと、実際に起動できるWebアプリケーションの本体が作られます。
 var app = builder.Build();
 
+// すべてのリクエストにRequest IDを付けるため、早い段階でミドルウェアを実行します。
+app.UseMiddleware<RequestIdMiddleware>();
+
 // 登録したCORSポリシーをHTTPリクエストへ適用します。
 app.UseCors("Frontend");
 

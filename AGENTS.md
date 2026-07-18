@@ -6,7 +6,7 @@
 
 ## 現在の学習テーマ
 
-現在は「外部依存をヘルスチェックへ含める」ステップです。
+現在は「Request IDでリクエストを追跡する」ステップです。
 
 これまでの実装で学んだこと:
 
@@ -137,6 +137,14 @@
 - DBだけでなくRedisも稼働条件に含める考え方
 - 依存サービス障害時に`503 Service Unavailable`を返す運用設計
 
+今回のRequest IDで学ぶこと:
+
+- ASP.NET Coreのカスタムミドルウェアの基本
+- `RequestDelegate`で次の処理へつなぐ方法
+- `X-Request-Id`をレスポンスとログへ共通して付ける方法
+- `BeginScope`でログへリクエスト情報を追加する方法
+- クライアント入力をそのままログへ出さない考え方
+
 現在のAPI入口は `TodoApi/Program.cs`、DB接続は `TodoApi/Data/TodoDbContext.cs`、Todo操作ロジックは `TodoApi/Services/TodoService.cs`、テストは `TodoApi.Tests/TodoApiTests.cs` にあります。
 
 ## 今後の拡張/学習計画
@@ -209,6 +217,7 @@
 - レート制限を追加する 完了（クライアント単位のパーティションを追加、設定値を外部化）
 - Redisで分散レート制限を追加する 完了（Redisモードを任意で有効化）
 - Redisのヘルスチェックを追加する 完了
+- Request IDを追加する 完了
 
 完了目安:
 

@@ -137,6 +137,24 @@ public class TodoApiTests
     }
 
     [Fact]
+    public async Task GetRoot_WithRequestId_ReturnsSameRequestId()
+    {
+        using var factory = new TodoApiTestFactory();
+        using var client = factory.CreateClient();
+
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/");
+        request.Headers.Add("X-Request-Id", "11111111-1111-1111-1111-111111111111");
+
+        var response = await client.SendAsync(request);
+
+        response.EnsureSuccessStatusCode();
+        Assert.Equal(
+            "11111111111111111111111111111111",
+            response.Headers.GetValues("X-Request-Id").Single()
+        );
+    }
+
+    [Fact]
     public async Task GetTodos_WhenRequestLimitIsExceeded_ReturnsTooManyRequests()
     {
         using var factory = new TodoApiTestFactory();

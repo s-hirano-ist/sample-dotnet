@@ -9,6 +9,8 @@ Swagger UIは `http://localhost:5191/swagger` で確認できます。Swagger UI
 
 Todoの作成・更新・削除や、存在しないTodoへの更新・削除を行うと、ターミナルに構造化ログが出力されます。
 
+各レスポンスには`X-Request-Id`が付与されます。このIDはログにも含まれるため、レスポンスとサーバーログを紐付けられます。
+
 アプリとデータベースの状態は `http://localhost:5191/health` で確認できます。
 
 Todo APIにはクライアント単位のレート制限があり、設定ファイルの`RateLimit`で保存先、許可数、時間枠を管理します。初期設定はインメモリで、10秒間に最大10リクエストまで許可します。制限を超えると`429 Too Many Requests`が返ります。
@@ -178,6 +180,15 @@ curl -i http://localhost:5191/ \
 
 ```text
 Access-Control-Allow-Origin: http://localhost:3000
+```
+
+## Request IDを確認する
+
+クライアントが`X-Request-Id`を送ると、APIは形式を確認して同じリクエストIDを返します。IDを送らない場合はAPIが新しいIDを生成します。
+
+```bash
+curl -i http://localhost:5191/ \
+  -H "X-Request-Id: 11111111-1111-1111-1111-111111111111"
 ```
 
 ## 認証・認可を確認する
