@@ -42,6 +42,8 @@ public class TodoApiTests
             "X-API-Key",
             document["components"]?["securitySchemes"]?["ApiKey"]?["name"]?.GetValue<string>()
         );
+        Assert.NotNull(document["paths"]?["/todos"]?["post"]?["security"]);
+        Assert.Null(document["paths"]?["/todos"]?["get"]?["security"]);
     }
 
     [Fact]

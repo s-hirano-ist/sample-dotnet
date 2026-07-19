@@ -150,6 +150,8 @@ builder.Services.AddOpenApi(options =>
 {
     // 実際のX-API-Key認証をOpenAPI仕様へ登録します。
     options.AddDocumentTransformer<ApiKeyDocumentTransformer>();
+    // 認証が必要な操作へ、APIキーを使うことを明示します。
+    options.AddOperationTransformer<ApiKeyOperationTransformer>();
 });
 
 // AddDbContext は、Entity Framework Coreで使うDbContextをDIコンテナに登録します。

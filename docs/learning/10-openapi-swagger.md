@@ -131,7 +131,21 @@ OpenAPI JSONは、次の用途にも使えます。
 - CIでの仕様差分確認
 - 外部サービスとの連携
 
-## 7. 開発環境だけでSwagger UIを有効にする理由
+## 7. 認証が必要な操作を表現する
+
+Security Schemeを登録するだけでは、どの操作が認証必須かまでは決まりません。
+このAPIでは、操作TransformerでTodoの作成・更新・削除にAPIキー要求を追加しています。
+
+```text
+GET /todos              -> 認証不要
+POST /todos             -> X-API-Keyが必要
+PUT /todos/{id}         -> X-API-Keyが必要
+DELETE /todos/{id}      -> X-API-Keyが必要
+```
+
+仕様書の`security`項目を見ると、Swagger UIやクライアント生成ツールも認証要否を判断できます。
+
+## 8. 開発環境だけでSwagger UIを有効にする理由
 
 Swagger UIは便利ですが、APIの構造を外部へ公開する画面でもあります。
 
