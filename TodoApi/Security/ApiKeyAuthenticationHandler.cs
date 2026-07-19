@@ -66,7 +66,7 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<AuthenticationS
         foreach (var credential in credentials)
         {
             var expectedBytes = Encoding.UTF8.GetBytes(credential.Key);
-            var isMatch = CryptographicOperations.FixedTimeEquals(providedBytes, expectedBytes);
+            var isMatch = KeysMatch(providedBytes, expectedBytes);
 
             if (isMatch)
             {
@@ -99,6 +99,15 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<AuthenticationS
     }
 
     private sealed record ApiKeyCredential(string Key, string Name, string[] Permissions);
+
+    private static bool KeysMatch(byte[] providedBytes, byte[] expectedBytes)
+    {
+        // 入力を固定長のダイジェストへ変換してから比較します。
+        // これにより、元のキーの長さに依存せず比較できます。
+        var providedDigest = SHA256.HashData(providedBytes);
+        var expectedDigest = SHA256.HashData(expectedBytes);
+        return CryptographicOperations.FixedTimeEquals(providedDigest, expectedDigest);
+    }
 
     protected override async Task HandleChallengeAsync(AuthenticationProperties properties)
     {
