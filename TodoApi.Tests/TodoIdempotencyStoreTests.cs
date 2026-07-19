@@ -69,6 +69,56 @@ public class TodoIdempotencyStoreTests
         Assert.Equal(2, second.Todo?.Id);
     }
 
+    [Fact]
+    public async Task ExecuteAsync_ConcurrentlyWithSameKey_ExecutesOperationOnce()
+    {
+        var clock = new TestTimeProvider();
+        var store = CreateStore(clock, lifetimeSeconds: 60);
+        var executions = 0;
+        var operationStarted = new TaskCompletionSource<bool>(
+            TaskCreationOptions.RunContinuationsAsynchronously
+        );
+        var releaseOperation = new TaskCompletionSource<TodoItem>(
+            TaskCreationOptions.RunContinuationsAsynchronously
+        );
+
+        // 最初の処理を途中で止め、2つ目のリクエストが同じ処理を待つ状況を作ります。
+        var firstTask = store.ExecuteAsync(
+            "client",
+            "key",
+            "request-a",
+            async () =>
+            {
+                Interlocked.Increment(ref executions);
+                operationStarted.SetResult(true);
+                return await releaseOperation.Task;
+            },
+            CancellationToken.None
+        );
+
+        await operationStarted.Task;
+
+        var secondTask = store.ExecuteAsync(
+            "client",
+            "key",
+            "request-a",
+            () =>
+            {
+                Interlocked.Increment(ref executions);
+                return Task.FromResult(CreateTodo(2));
+            },
+            CancellationToken.None
+        );
+
+        releaseOperation.SetResult(CreateTodo(1));
+        var results = await Task.WhenAll(firstTask, secondTask);
+
+        Assert.Equal(1, executions);
+        Assert.False(results[0].IsReplay);
+        Assert.True(results[1].IsReplay);
+        Assert.Equal(1, results[1].Todo?.Id);
+    }
+
     private static TodoIdempotencyStore CreateStore(TestTimeProvider clock, int lifetimeSeconds)
     {
         return new TodoIdempotencyStore(

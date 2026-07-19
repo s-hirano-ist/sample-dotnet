@@ -5,6 +5,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using System.Threading.RateLimiting;
 using StackExchange.Redis;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
 // WebApplication.CreateBuilder は、ASP.NET Coreアプリを作るための準備をします。
 // args には、コマンドライン引数が入ります。今は特別な引数を使っていません。
@@ -14,6 +17,12 @@ builder.Services.AddSingleton<IValidateOptions<IdempotencyOptions>, IdempotencyO
 builder.Services
     .AddOptions<IdempotencyOptions>()
     .Bind(builder.Configuration.GetSection(ConfigurationDefaults.IdempotencySection))
+    .ValidateOnStart();
+
+builder.Services.AddSingleton<IValidateOptions<OpenTelemetryOptions>, OpenTelemetryOptionsValidator>();
+builder.Services
+    .AddOptions<OpenTelemetryOptions>()
+    .Bind(builder.Configuration.GetSection(ConfigurationDefaults.OpenTelemetrySection))
     .ValidateOnStart();
 
 // 冪等性キーの結果をAPIプロセス内で共有するため、Singletonとして登録します。
@@ -178,6 +187,40 @@ builder.Services.AddDbContext<TodoDbContext>(options =>
 builder.Services.AddScoped<TodoService>();
 // ApiMetricsは、HTTPリクエストの件数と処理時間を記録するSingletonです。
 builder.Services.AddSingleton<ApiMetrics>();
+
+var openTelemetryOptions = builder.Configuration
+    .GetSection(ConfigurationDefaults.OpenTelemetrySection)
+    .Get<OpenTelemetryOptions>() ?? new OpenTelemetryOptions();
+
+if (openTelemetryOptions.Enabled)
+{
+    // OpenTelemetryは、HTTPのトレースとランタイムのメトリクスを標準形式で収集します。
+    // OTLPはCollectorや監視サービスへ送るための標準プロトコルです。
+    builder.Services
+        .AddOpenTelemetry()
+        .ConfigureResource(resource =>
+            resource.AddService(serviceName: builder.Environment.ApplicationName)
+        )
+        .WithTracing(tracing =>
+            tracing
+                .AddAspNetCoreInstrumentation()
+                .AddHttpClientInstrumentation()
+                .AddOtlpExporter(options =>
+                {
+                    options.Endpoint = new Uri(openTelemetryOptions.OtlpEndpoint);
+                })
+        )
+        .WithMetrics(metrics =>
+            metrics
+                .AddAspNetCoreInstrumentation()
+                .AddRuntimeInstrumentation()
+                .AddMeter(ApiMetrics.MeterName)
+                .AddOtlpExporter(options =>
+                {
+                    options.Endpoint = new Uri(openTelemetryOptions.OtlpEndpoint);
+                })
+        );
+}
 
 // Build を呼ぶと、実際に起動できるWebアプリケーションの本体が作られます。
 var app = builder.Build();
