@@ -463,6 +463,60 @@ public class TodoApiTests
     }
 
     [Fact]
+    public async Task GetTodosByCursor_ReturnsNextCursorForTheFollowingRequest()
+    {
+        using var factory = new TodoApiTestFactory();
+        using var client = factory.CreateClient();
+
+        for (var todoNumber = 1; todoNumber <= 3; todoNumber++)
+        {
+            var createResponse = await client.PostAsJsonAsync(
+                "/todos",
+                new { title = $"Cursor Todo {todoNumber}" }
+            );
+            createResponse.EnsureSuccessStatusCode();
+        }
+
+        var firstResponse = await client.GetAsync("/todos/cursor?pageSize=2");
+        firstResponse.EnsureSuccessStatusCode();
+        var firstPage = await firstResponse.Content.ReadFromJsonAsync<JsonObject>();
+
+        Assert.NotNull(firstPage);
+        Assert.Equal(2, firstPage["items"]?.AsArray().Count);
+        Assert.True(firstPage["hasNextPage"]?.GetValue<bool>());
+        var nextCursor = firstPage["nextCursor"]?.GetValue<string>();
+        Assert.NotNull(nextCursor);
+
+        var secondResponse = await client.GetAsync(
+            $"/todos/cursor?pageSize=2&cursor={Uri.EscapeDataString(nextCursor)}"
+        );
+        secondResponse.EnsureSuccessStatusCode();
+        var secondPage = await secondResponse.Content.ReadFromJsonAsync<JsonObject>();
+
+        Assert.NotNull(secondPage);
+        Assert.Single(secondPage["items"]!.AsArray());
+        Assert.False(secondPage["hasNextPage"]?.GetValue<bool>());
+        Assert.Null(secondPage["nextCursor"]);
+        Assert.Equal("Cursor Todo 3", secondPage["items"]?[0]?[
+            "title"
+        ]?.GetValue<string>());
+    }
+
+    [Fact]
+    public async Task GetTodosByCursor_WithInvalidCursor_ReturnsBadRequest()
+    {
+        using var factory = new TodoApiTestFactory();
+        using var client = factory.CreateClient();
+
+        var response = await client.GetAsync("/todos/cursor?cursor=invalid");
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var error = await response.Content.ReadFromJsonAsync<JsonObject>();
+        Assert.NotNull(error);
+        Assert.Equal("cursor_invalid", error["code"]?.GetValue<string>());
+    }
+
+    [Fact]
     public async Task GetTodos_WithPaging_ReturnsNavigationLinksAndPreservesFilters()
     {
         using var factory = new TodoApiTestFactory();

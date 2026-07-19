@@ -81,7 +81,8 @@ dotnet --version
 │       ├── 30-opentelemetry.md
 │       ├── 31-redis-idempotency.md
 │       ├── 32-database-indexes.md
-│       └── 33-api-key-lifecycle.md
+│       ├── 33-api-key-lifecycle.md
+│       └── 34-cursor-pagination.md
 ├── SampleDotnet.slnx
 ├── dotnet-tools.json
 ├── TodoApi/

@@ -392,6 +392,56 @@ app.MapGet("/todos", async (
     .Produces<Microsoft.AspNetCore.Mvc.ProblemDetails>(StatusCodes.Status500InternalServerError)
     .RequireRateLimiting(ApiPolicyDefaults.RateLimitPolicy);
 
+// GET /todos/cursor は、大量データ向けのカーソルページングです。
+// page番号方式と違い、前回の最後のIDより後ろだけをDBから読み取ります。
+app.MapGet("/todos/cursor", async (
+    int? pageSize,
+    string? cursor,
+    bool? isDone,
+    string? search,
+    TodoService todoService,
+    CancellationToken cancellationToken
+) =>
+{
+    var currentPageSize = pageSize ?? PaginationValidation.DefaultPageSize;
+    var validation = PaginationValidation.Validate(PaginationValidation.DefaultPage, currentPageSize);
+
+    if (!validation.IsValid)
+    {
+        return Results.BadRequest(validation.Error);
+    }
+
+    int? afterId = null;
+    if (cursor is not null)
+    {
+        if (!TodoCursor.TryParse(cursor, out var parsedAfterId))
+        {
+            return Results.BadRequest(
+                new ApiError("cursor_invalid", "Cursor is invalid or expired.")
+            );
+        }
+
+        afterId = parsedAfterId;
+    }
+
+    var response = await todoService.GetCursorPageAsync(
+        currentPageSize,
+        afterId,
+        isDone,
+        search,
+        cancellationToken
+    );
+
+    return Results.Ok(response);
+})
+    .WithName("GetTodosByCursor")
+    .WithSummary("List todos with cursor pagination")
+    .WithDescription("Returns todos after an opaque cursor for large datasets.")
+    .Produces<TodoCursorListResponse>(StatusCodes.Status200OK)
+    .Produces<ApiError>(StatusCodes.Status400BadRequest)
+    .Produces<Microsoft.AspNetCore.Mvc.ProblemDetails>(StatusCodes.Status500InternalServerError)
+    .RequireRateLimiting(ApiPolicyDefaults.RateLimitPolicy);
+
 // GET /todos/1 のように、URLの一部からidを受け取ります。
 // {id:int} と書くことで、idは整数だけ受け付けます。
 app.MapGet("/todos/{id:int}", async (

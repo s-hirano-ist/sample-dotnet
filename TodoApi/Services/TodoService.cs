@@ -80,6 +80,57 @@ public partial class TodoService
         );
     }
 
+    public async Task<TodoCursorListResponse> GetCursorPageAsync(
+        int pageSize,
+        int? afterId,
+        bool? isDone,
+        string? search,
+        CancellationToken cancellationToken
+    )
+    {
+        var query = _dbContext.Todos.AsNoTracking();
+
+        if (afterId.HasValue)
+        {
+            query = query.Where(todo => todo.Id > afterId.Value);
+        }
+
+        if (isDone.HasValue)
+        {
+            query = query.Where(todo => todo.IsDone == isDone.Value);
+        }
+
+        var searchTerm = search?.Trim() ?? string.Empty;
+        if (searchTerm.Length > 0)
+        {
+            var normalizedSearchTerm = searchTerm.ToLowerInvariant();
+            query = query.Where(todo => todo.Title.ToLower().Contains(normalizedSearchTerm));
+        }
+
+        // IDの昇順を固定すると、前回の最後のIDより後ろだけを効率よく取得できます。
+        var todos = await query
+            .OrderBy(todo => todo.Id)
+            .Take(pageSize + 1)
+            .ToListAsync(cancellationToken);
+
+        var hasNextPage = todos.Count > pageSize;
+        if (hasNextPage)
+        {
+            todos.RemoveAt(todos.Count - 1);
+        }
+
+        var nextCursor = hasNextPage && todos.Count > 0
+            ? TodoCursor.Create(todos[^1].Id)
+            : null;
+
+        return new TodoCursorListResponse(
+            Items: todos,
+            PageSize: pageSize,
+            NextCursor: nextCursor,
+            HasNextPage: hasNextPage
+        );
+    }
+
     public async Task<TodoItem?> GetByIdAsync(int id, CancellationToken cancellationToken)
     {
         // FirstOrDefaultAsync は、条件に合う最初の要素をデータベースから探します。
