@@ -37,6 +37,7 @@ public class TodoApiTests
         // パッチバージョンは使用するパッケージ更新で変わるため、3.1.で始まることだけを検証します。
         Assert.StartsWith("3.1.", document["openapi"]?.GetValue<string>());
         Assert.NotNull(document["paths"]?["/todos"]);
+        Assert.Equal("List todos", document["paths"]?["/todos"]?["get"]?["summary"]?.GetValue<string>());
     }
 
     [Fact]

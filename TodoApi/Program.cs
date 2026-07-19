@@ -176,12 +176,17 @@ using (var scope = app.Services.CreateScope())
 // GET / にアクセスされたときの処理です。
 // () => ... はラムダ式で、「引数なしで、この値を返す処理」を短く書いています。
 app.MapGet("/", () => "Todo API is running.")
-    .WithName("GetApiStatus");
+    .WithName("GetApiStatus")
+    .WithSummary("Check API status")
+    .WithDescription("Returns a simple message when the Todo API is running.")
+    .Produces<string>(StatusCodes.Status200OK);
 
 // /healthは、監視システムがアプリとデータベースの状態を確認するためのURLです。
 // 正常ならHTTP 200、異常ならHTTP 503を返します。
 app.MapHealthChecks("/health")
-    .WithName("GetHealth");
+    .WithName("GetHealth")
+    .WithSummary("Check application health")
+    .WithDescription("Checks the database and configured external dependencies.");
 
 // GET /todos は、指定されたページのTodo一覧を返します。
 // クエリ文字列がない場合は、page=1、pageSize=20、全状態として扱います。
@@ -226,6 +231,10 @@ app.MapGet("/todos", async (
     return Results.Ok(todos);
 })
     .WithName("GetTodos")
+    .WithSummary("List todos")
+    .WithDescription("Returns a paged list of todos with optional filtering and sorting.")
+    .Produces<TodoListResponse>(StatusCodes.Status200OK)
+    .Produces<ApiError>(StatusCodes.Status400BadRequest)
     .RequireRateLimiting("api");
 
 // GET /todos/1 のように、URLの一部からidを受け取ります。
@@ -241,6 +250,10 @@ app.MapGet("/todos/{id:int}", async (int id, TodoService todoService, Cancellati
         : Results.Ok(todo);
 })
     .WithName("GetTodo")
+    .WithSummary("Get a todo")
+    .WithDescription("Returns one todo by its numeric ID.")
+    .Produces<TodoItem>(StatusCodes.Status200OK)
+    .Produces(StatusCodes.Status404NotFound)
     .RequireRateLimiting("api");
 
 // POST /todos は、新しいTodoを作成します。
@@ -265,6 +278,11 @@ app.MapPost("/todos", async (
     return Results.Created($"/todos/{todo.Id}", todo);
 })
     .WithName("CreateTodo")
+    .WithSummary("Create a todo")
+    .WithDescription("Creates a new incomplete todo.")
+    .Produces<TodoItem>(StatusCodes.Status201Created)
+    .Produces<ApiError>(StatusCodes.Status400BadRequest)
+    .Produces(StatusCodes.Status401Unauthorized)
     .RequireAuthorization()
     .RequireRateLimiting("api");
 
@@ -294,6 +312,12 @@ app.MapPut("/todos/{id:int}", async (
     return Results.Ok(updatedTodo);
 })
     .WithName("UpdateTodo")
+    .WithSummary("Update a todo")
+    .WithDescription("Updates the supplied fields of an existing todo.")
+    .Produces<TodoItem>(StatusCodes.Status200OK)
+    .Produces<ApiError>(StatusCodes.Status400BadRequest)
+    .Produces(StatusCodes.Status401Unauthorized)
+    .Produces(StatusCodes.Status404NotFound)
     .RequireAuthorization()
     .RequireRateLimiting("api");
 
@@ -316,6 +340,11 @@ app.MapDelete("/todos/{id:int}", async (
     return Results.NoContent();
 })
     .WithName("DeleteTodo")
+    .WithSummary("Delete a todo")
+    .WithDescription("Deletes an existing todo.")
+    .Produces(StatusCodes.Status204NoContent)
+    .Produces(StatusCodes.Status401Unauthorized)
+    .Produces(StatusCodes.Status404NotFound)
     .RequireAuthorization()
     .RequireRateLimiting("api");
 
