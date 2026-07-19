@@ -6,7 +6,7 @@
 
 ## 現在の学習テーマ
 
-現在は「CORSを基礎から理解する」ステップです。
+現在は「ヘルスチェックを基礎から理解する」ステップです。
 
 これまでの実装で学んだこと:
 
@@ -218,6 +218,7 @@
 - `docs/learning/10-openapi-swagger.md`
 - `docs/learning/11-logging.md`
 - `docs/learning/12-cors.md`
+- `docs/learning/13-health-checks.md`
 
 現在のAPI入口は `TodoApi/Program.cs`、DB接続は `TodoApi/Data/TodoDbContext.cs`、Todo操作ロジックは `TodoApi/Services/TodoService.cs`、テストは `TodoApi.Tests/TodoApiTests.cs` にあります。
 
