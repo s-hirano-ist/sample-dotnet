@@ -51,9 +51,15 @@ builder.Services
     .Bind(builder.Configuration.GetSection("Authentication"))
     .Validate(
         options =>
-            !string.IsNullOrWhiteSpace(options.ApiKey)
-            && options.Permissions.Length > 0,
-        "Authentication:ApiKey must be configured and Permissions must not be empty."
+            (
+                !string.IsNullOrWhiteSpace(options.ApiKey)
+                && options.Permissions.Length > 0
+            )
+            || options.Clients.Any(client =>
+                !string.IsNullOrWhiteSpace(client.Key)
+                && client.Permissions.Length > 0
+            ),
+        "Authentication must configure a legacy API key or at least one client."
     )
     .ValidateOnStart();
 

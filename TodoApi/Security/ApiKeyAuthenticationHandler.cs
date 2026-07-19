@@ -34,17 +34,47 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<AuthenticationS
         // 固定時間比較は、キーの比較時間から値を推測されにくくするために使います。
         // ローテーション中は、現在のキーと追加キーをすべて確認します。
         var providedBytes = Encoding.UTF8.GetBytes(providedApiKey.ToString());
-        var expectedApiKeys = new[] { _apiKeyOptions.ApiKey }
-            .Concat(_apiKeyOptions.AdditionalApiKeys);
-        var isValidApiKey = false;
+        var credentials = new List<ApiKeyCredential>();
 
-        foreach (var expectedApiKey in expectedApiKeys)
+        if (!string.IsNullOrWhiteSpace(_apiKeyOptions.ApiKey))
         {
-            var expectedBytes = Encoding.UTF8.GetBytes(expectedApiKey);
-            isValidApiKey |= CryptographicOperations.FixedTimeEquals(providedBytes, expectedBytes);
+            credentials.Add(
+                new ApiKeyCredential(
+                    _apiKeyOptions.ApiKey,
+                    ApiKeyClaimDefaults.ClientName,
+                    _apiKeyOptions.Permissions
+                )
+            );
         }
 
-        if (!isValidApiKey)
+        credentials.AddRange(
+            _apiKeyOptions.AdditionalApiKeys.Select(
+                key => new ApiKeyCredential(
+                    key,
+                    ApiKeyClaimDefaults.ClientName,
+                    _apiKeyOptions.Permissions
+                )
+            )
+        );
+        credentials.AddRange(
+            _apiKeyOptions.Clients.Select(
+                client => new ApiKeyCredential(client.Key, client.Name, client.Permissions)
+            )
+        );
+
+        ApiKeyCredential? matchedCredential = null;
+        foreach (var credential in credentials)
+        {
+            var expectedBytes = Encoding.UTF8.GetBytes(credential.Key);
+            var isMatch = CryptographicOperations.FixedTimeEquals(providedBytes, expectedBytes);
+
+            if (isMatch)
+            {
+                matchedCredential = credential;
+            }
+        }
+
+        if (matchedCredential is null)
         {
             return Task.FromResult(AuthenticateResult.Fail("Invalid API key."));
         }
@@ -52,12 +82,12 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<AuthenticationS
         // 認証に成功したユーザーを表すClaimsPrincipalを作ります。
         var claims = new List<Claim>
         {
-            new(ClaimTypes.Name, ApiKeyClaimDefaults.ClientName)
+            new(ClaimTypes.Name, matchedCredential.Name)
         };
 
         // 設定された権限をClaimへ変換します。
         claims.AddRange(
-            _apiKeyOptions.Permissions.Select(
+            matchedCredential.Permissions.Select(
                 permission => new Claim(ApiKeyClaimDefaults.PermissionClaimType, permission)
             )
         );
@@ -67,6 +97,8 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<AuthenticationS
 
         return Task.FromResult(AuthenticateResult.Success(ticket));
     }
+
+    private sealed record ApiKeyCredential(string Key, string Name, string[] Permissions);
 
     protected override async Task HandleChallengeAsync(AuthenticationProperties properties)
     {

@@ -200,6 +200,20 @@ public class TodoApiTests
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
     }
 
+    [Fact]
+    public async Task PostTodo_WithReadOnlyClientKey_ReturnsForbidden()
+    {
+        using var factory = new TodoApiClientTestFactory();
+        using var client = factory.CreateClient();
+
+        client.DefaultRequestHeaders.Remove(ApiKeyAuthenticationDefaults.HeaderName);
+        client.DefaultRequestHeaders.Add(ApiKeyAuthenticationDefaults.HeaderName, "read-only-client-key");
+
+        var response = await client.PostAsJsonAsync("/todos", new { title = "Read only client" });
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
     // [Fact] はxUnitの属性です。
     // このメソッドが「1つのテストケース」であることを表します。
     [Fact]
@@ -814,6 +828,22 @@ public class TodoApiReadOnlyTestFactory : TodoApiTestFactory
         {
             // 配列のPermissionsを読み取り権限だけで上書きします。
             ["Authentication:Permissions:0"] = "todo:read"
+        });
+    }
+}
+
+// TodoApiClientTestFactoryは、クライアントごとの権限設定をテストします。
+public class TodoApiClientTestFactory : TodoApiTestFactory
+{
+    protected override void ConfigureAdditionalTestConfiguration(IConfigurationBuilder configuration)
+    {
+        base.ConfigureAdditionalTestConfiguration(configuration);
+
+        configuration.AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            ["Authentication:Clients:0:Name"] = "read-only-client",
+            ["Authentication:Clients:0:Key"] = "read-only-client-key",
+            ["Authentication:Clients:0:Permissions:0"] = "todo:read"
         });
     }
 }

@@ -9,4 +9,7 @@ public sealed class ApiKeyOptions
 
     // キーのローテーション期間に、一時的に受け付ける追加キーです。
     public string[] AdditionalApiKeys { get; set; } = Array.Empty<string>();
+
+    // クライアントごとに名前と権限を変える場合に使います。
+    public ApiKeyClientOptions[] Clients { get; set; } = Array.Empty<ApiKeyClientOptions>();
 }
