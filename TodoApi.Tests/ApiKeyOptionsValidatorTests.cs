@@ -55,4 +55,20 @@ public class ApiKeyOptionsValidatorTests
 
         Assert.True(result.Failed);
     }
+
+    [Fact]
+    public void Validate_WithEmptyAdditionalApiKey_Fails()
+    {
+        var validator = new ApiKeyOptionsValidator();
+        var options = new ApiKeyOptions
+        {
+            ApiKey = "primary-key",
+            Permissions = [ApiKeyClaimDefaults.TodoWritePermission],
+            AdditionalApiKeys = [""]
+        };
+
+        var result = validator.Validate(Options.DefaultName, options);
+
+        Assert.True(result.Failed);
+    }
 }

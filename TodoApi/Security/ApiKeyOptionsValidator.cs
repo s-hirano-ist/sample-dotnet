@@ -29,6 +29,11 @@ public sealed class ApiKeyOptionsValidator : IValidateOptions<ApiKeyOptions>
             );
         }
 
+        if (options.AdditionalApiKeys.Any(string.IsNullOrWhiteSpace))
+        {
+            return ValidateOptionsResult.Fail("Additional API keys must not be empty.");
+        }
+
         var keys = new[] { options.ApiKey }
             .Concat(options.AdditionalApiKeys)
             .Concat(options.Clients.Select(client => client.Key))
