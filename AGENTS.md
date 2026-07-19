@@ -477,6 +477,7 @@
 - HTTPS時だけHSTSヘッダーを追加する 完了
 - `Permissions-Policy`で不要なブラウザ機能を無効にする 完了
 - APIレスポンスへCSPを追加し、Swagger UIとの違いを扱う 完了
+- `OnStarting`でエラー応答にもセキュリティヘッダーを付与する 完了
 
 完了目安:
 

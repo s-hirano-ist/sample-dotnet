@@ -10,8 +10,9 @@ public sealed class SecurityHeadersMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
-        // レスポンス本文の送信前にヘッダーを追加する必要があります。
-        if (!context.Response.HasStarted)
+        // OnStartingは、レスポンスヘッダーを送信する直前に実行されます。
+        // 例外処理Middlewareが後からレスポンスを書き換えても、ヘッダーを付与できます。
+        context.Response.OnStarting(() =>
         {
             // Content-Typeを推測して別の形式として解釈する動作を抑止します。
             context.Response.Headers["X-Content-Type-Options"] = "nosniff";
@@ -38,7 +39,9 @@ public sealed class SecurityHeadersMiddleware
                 context.Response.Headers["Strict-Transport-Security"] =
                     "max-age=31536000; includeSubDomains";
             }
-        }
+
+            return Task.CompletedTask;
+        });
 
         await _next(context);
     }
