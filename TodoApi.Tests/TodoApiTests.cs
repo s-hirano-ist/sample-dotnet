@@ -654,6 +654,28 @@ public class TodoApiTests
     }
 
     [Fact]
+    public async Task GetTodo_WithMatchingIfNoneMatch_ReturnsNotModified()
+    {
+        using var factory = new TodoApiTestFactory();
+        using var client = factory.CreateClient();
+
+        var createResponse = await client.PostAsJsonAsync("/todos", new { title = "Cache me" });
+        createResponse.EnsureSuccessStatusCode();
+
+        var firstResponse = await client.GetAsync("/todos/1");
+        firstResponse.EnsureSuccessStatusCode();
+        var etag = firstResponse.Headers.ETag?.ToString();
+        Assert.False(string.IsNullOrWhiteSpace(etag));
+
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/todos/1");
+        request.Headers.TryAddWithoutValidation("If-None-Match", etag);
+        var cachedResponse = await client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.NotModified, cachedResponse.StatusCode);
+        Assert.Equal(etag, cachedResponse.Headers.ETag?.ToString());
+    }
+
+    [Fact]
     public async Task PutTodo_WithValidRequest_UpdatesTodo()
     {
         using var factory = new TodoApiTestFactory();

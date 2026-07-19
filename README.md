@@ -72,7 +72,8 @@ dotnet --version
 │       ├── 21-security-scanning.md
 │       ├── 22-options-validation.md
 │       ├── 23-security-headers.md
-│       └── 24-metrics.md
+│       ├── 24-metrics.md
+│       └── 25-etag-caching.md
 ├── SampleDotnet.slnx
 ├── dotnet-tools.json
 ├── TodoApi/

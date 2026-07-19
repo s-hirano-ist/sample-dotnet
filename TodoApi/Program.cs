@@ -326,15 +326,35 @@ app.MapGet("/todos", async (
 
 // GET /todos/1 のように、URLの一部からidを受け取ります。
 // {id:int} と書くことで、idは整数だけ受け付けます。
-app.MapGet("/todos/{id:int}", async (int id, TodoService todoService, CancellationToken cancellationToken) =>
+app.MapGet("/todos/{id:int}", async (
+    int id,
+    HttpContext httpContext,
+    TodoService todoService,
+    CancellationToken cancellationToken
+) =>
 {
     var todo = await todoService.GetByIdAsync(id, cancellationToken);
 
-    // 三項演算子です。
-    // 条件 ? trueの場合の値 : falseの場合の値 という形で書きます。
-    return todo is null
-        ? Results.NotFound()
-        : Results.Ok(todo);
+    if (todo is null)
+    {
+        return Results.NotFound();
+    }
+
+    var etag = TodoEtag.Create(todo);
+    httpContext.Response.Headers.ETag = etag;
+
+    // If-None-Matchが現在のETagと一致すれば、本文を送らず304を返します。
+    if (
+        httpContext.Request.Headers.TryGetValue("If-None-Match", out var ifNoneMatch)
+        && ifNoneMatch.Any(value =>
+            value?.Split(',').Any(candidate => candidate.Trim() == etag) == true
+        )
+    )
+    {
+        return Results.StatusCode(StatusCodes.Status304NotModified);
+    }
+
+    return Results.Ok(todo);
 })
     .WithName("GetTodo")
     .WithSummary("Get a todo")
