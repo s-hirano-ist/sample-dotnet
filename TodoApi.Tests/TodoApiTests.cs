@@ -92,6 +92,22 @@ public class TodoApiTests
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
+    [Fact]
+    public async Task PostTodo_WithInvalidApiKey_ReturnsUnauthorized()
+    {
+        using var factory = new TodoApiTestFactory();
+        using var client = factory.CreateClient();
+
+        // 正しいキーではなく、別のキーを送る異常系を再現します。
+        client.DefaultRequestHeaders.Remove("X-API-Key");
+        client.DefaultRequestHeaders.Add("X-API-Key", "wrong-api-key");
+
+        var response = await client.PostAsJsonAsync("/todos", new { title = "Should fail" });
+
+        // キーが存在していても、値が一致しなければ401になります。
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
     // [Fact] はxUnitの属性です。
     // このメソッドが「1つのテストケース」であることを表します。
     [Fact]
