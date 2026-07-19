@@ -9,12 +9,23 @@ var builder = WebApplication.CreateBuilder(args);
 
 // CORSは、ブラウザから別のオリジンにあるAPIを呼び出すときの許可ルールです。
 // 許可するオリジンはコードに直接書かず、appsettings.jsonから読み込みます。
-var allowedOrigins = builder.Configuration
-    .GetSection("Cors:AllowedOrigins")
-    .GetChildren()
-    .Select(section => section.Value)
-    .OfType<string>()
-    .ToArray();
+builder.Services
+    .AddOptions<CorsOptions>()
+    .Bind(builder.Configuration.GetSection("Cors"))
+    .Validate(
+        options =>
+            options.AllowedOrigins.Length > 0
+            && options.AllowedOrigins.All(origin =>
+                Uri.TryCreate(origin, UriKind.Absolute, out var uri)
+                && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps)
+            ),
+        "Cors:AllowedOrigins must contain at least one absolute HTTP or HTTPS origin."
+    )
+    .ValidateOnStart();
+
+// CORSの設定をOptionsと同じ型へ読み込み、ポリシー作成に使います。
+var corsOptions = builder.Configuration.GetSection("Cors").Get<CorsOptions>() ?? new CorsOptions();
+var allowedOrigins = corsOptions.AllowedOrigins;
 
 builder.Services.AddCors(options =>
 {

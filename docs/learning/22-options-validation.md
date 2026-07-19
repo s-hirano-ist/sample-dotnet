@@ -69,3 +69,14 @@ public sealed class RateLimitOptions
 
 このAPIでは、`Store`が`Memory`または`Redis`であること、許可数と時間枠が1以上であることを起動時に確認します。
 設定値を使うミドルウェアは、`IOptions<RateLimitOptions>`をDIから受け取ります。
+
+## 6. Originの形式を検証する
+
+CORSの許可OriginもOptionsへ束ね、絶対URLであることを確認できます。
+
+```csharp
+Uri.TryCreate(origin, UriKind.Absolute, out var uri)
+```
+
+このAPIでは、`http`または`https`のOriginだけを許可設定にできます。
+`localhost`だけ、`*`だけといった値は、意図しない公開につながるため設定エラーとして扱います。
