@@ -33,7 +33,7 @@ var allowedOrigins = corsOptions.AllowedOrigins;
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("Frontend", policy =>
+    options.AddPolicy(ApiPolicyDefaults.CorsPolicy, policy =>
     {
         policy
             .WithOrigins(allowedOrigins)
@@ -105,7 +105,7 @@ else
     builder.Services.AddRateLimiter(options =>
     {
         // クライアントごとに別の固定ウィンドウを作ります。
-        options.AddPolicy("api", httpContext =>
+        options.AddPolicy(ApiPolicyDefaults.RateLimitPolicy, httpContext =>
         {
             // 認証済みならユーザー名、未認証なら接続元IPを制限キーにします。
             var partitionKey = httpContext.User.Identity?.IsAuthenticated == true
@@ -183,7 +183,7 @@ app.UseMiddleware<SecurityHeadersMiddleware>();
 app.UseMiddleware<RequestLoggingMiddleware>();
 
 // 登録したCORSポリシーをHTTPリクエストへ適用します。
-app.UseCors("Frontend");
+app.UseCors(ApiPolicyDefaults.CorsPolicy);
 
 // 認証・認可ミドルウェアをエンドポイントより前に配置します。
 app.UseAuthentication();
@@ -319,7 +319,7 @@ app.MapGet("/todos", async (
     .Produces<TodoListResponse>(StatusCodes.Status200OK)
     .Produces<ApiError>(StatusCodes.Status400BadRequest)
     .Produces<Microsoft.AspNetCore.Mvc.ProblemDetails>(StatusCodes.Status500InternalServerError)
-    .RequireRateLimiting("api");
+    .RequireRateLimiting(ApiPolicyDefaults.RateLimitPolicy);
 
 // GET /todos/1 のように、URLの一部からidを受け取ります。
 // {id:int} と書くことで、idは整数だけ受け付けます。
@@ -339,7 +339,7 @@ app.MapGet("/todos/{id:int}", async (int id, TodoService todoService, Cancellati
     .Produces<TodoItem>(StatusCodes.Status200OK)
     .Produces(StatusCodes.Status404NotFound)
     .Produces<Microsoft.AspNetCore.Mvc.ProblemDetails>(StatusCodes.Status500InternalServerError)
-    .RequireRateLimiting("api");
+    .RequireRateLimiting(ApiPolicyDefaults.RateLimitPolicy);
 
 // POST /todos は、新しいTodoを作成します。
 // リクエストボディのJSONは、CreateTodoRequest型として受け取れます。
@@ -370,7 +370,7 @@ app.MapPost("/todos", async (
     .Produces(StatusCodes.Status401Unauthorized)
     .Produces<Microsoft.AspNetCore.Mvc.ProblemDetails>(StatusCodes.Status500InternalServerError)
     .RequireAuthorization()
-    .RequireRateLimiting("api");
+    .RequireRateLimiting(ApiPolicyDefaults.RateLimitPolicy);
 
 // PUT /todos/1 は、指定したTodoを更新します。
 // UpdateTodoRequestでは Title と IsDone を nullable にしているので、片方だけ更新できます。
@@ -406,7 +406,7 @@ app.MapPut("/todos/{id:int}", async (
     .Produces(StatusCodes.Status404NotFound)
     .Produces<Microsoft.AspNetCore.Mvc.ProblemDetails>(StatusCodes.Status500InternalServerError)
     .RequireAuthorization()
-    .RequireRateLimiting("api");
+    .RequireRateLimiting(ApiPolicyDefaults.RateLimitPolicy);
 
 // DELETE /todos/1 は、指定したTodoを削除します。
 app.MapDelete("/todos/{id:int}", async (
@@ -434,7 +434,7 @@ app.MapDelete("/todos/{id:int}", async (
     .Produces(StatusCodes.Status404NotFound)
     .Produces<Microsoft.AspNetCore.Mvc.ProblemDetails>(StatusCodes.Status500InternalServerError)
     .RequireAuthorization()
-    .RequireRateLimiting("api");
+    .RequireRateLimiting(ApiPolicyDefaults.RateLimitPolicy);
 
 // アプリを起動して、HTTPリクエストを待ち受けます。
 app.Run();
