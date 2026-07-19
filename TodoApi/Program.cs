@@ -173,6 +173,9 @@ app.UseMiddleware<RequestIdMiddleware>();
 // 後続のミドルウェアやエンドポイントの例外を共通のJSONレスポンスへ変換します。
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
+// APIレスポンスへ、ブラウザ向けの基本的なセキュリティヘッダーを追加します。
+app.UseMiddleware<SecurityHeadersMiddleware>();
+
 // HTTPの結果と処理時間を記録するため、Request IDの後に実行します。
 app.UseMiddleware<RequestLoggingMiddleware>();
 

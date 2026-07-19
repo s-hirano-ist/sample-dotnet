@@ -191,6 +191,20 @@ public class TodoApiTests
     }
 
     [Fact]
+    public async Task GetRoot_ReturnsSecurityHeaders()
+    {
+        using var factory = new TodoApiTestFactory();
+        using var client = factory.CreateClient();
+
+        var response = await client.GetAsync("/");
+
+        // ブラウザの解釈や埋め込みに関するセキュリティヘッダーを確認します。
+        Assert.Equal("nosniff", response.Headers.GetValues("X-Content-Type-Options").Single());
+        Assert.Equal("DENY", response.Headers.GetValues("X-Frame-Options").Single());
+        Assert.Equal("no-referrer", response.Headers.GetValues("Referrer-Policy").Single());
+    }
+
+    [Fact]
     public async Task GetHealth_WhenDatabaseIsAvailable_ReturnsOk()
     {
         using var factory = new TodoApiTestFactory();

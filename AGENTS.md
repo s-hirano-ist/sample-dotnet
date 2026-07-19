@@ -6,7 +6,7 @@
 
 ## 現在の学習テーマ
 
-現在は「CORSのプリフライトリクエストをテストする」ステップです。
+現在は「セキュリティヘッダーを共通Middlewareで追加する」ステップです。
 
 これまでの実装で学んだこと:
 
@@ -328,6 +328,13 @@
 - 許可していないOriginにCORSヘッダーを返さないことを確認する方法
 - `AllowAnyMethod`や`AllowAnyHeader`を使わず許可範囲を明示する方法
 
+今回のセキュリティヘッダーで学ぶこと:
+
+- 共通Middlewareから全レスポンスへヘッダーを追加する方法
+- `X-Content-Type-Options`、`X-Frame-Options`、`Referrer-Policy`の役割
+- `Response.HasStarted`でヘッダー変更可能なタイミングを確認する方法
+- セキュリティヘッダーを自動テストで守る考え方
+
 基礎学習の資料:
 
 - `docs/learning/18-code-coverage.md`
@@ -466,6 +473,7 @@
 - CORSの許可メソッドとヘッダーを設定で限定する 完了
 - OpenAPIの認証要求を保護された操作へ関連付ける 完了
 - HTTPメソッドに依存しないOpenAPI認証判定へ改善する 完了
+- セキュリティヘッダーを共通Middlewareで追加する 完了
 
 完了目安:
 
