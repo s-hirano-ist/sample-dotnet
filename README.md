@@ -49,7 +49,8 @@ dotnet --version
 │       ├── 07-configuration.md
 │       ├── 08-authentication-authorization.md
 │       ├── 09-api-errors.md
-│       └── 10-openapi-swagger.md
+│       ├── 10-openapi-swagger.md
+│       └── 11-logging.md
 ├── SampleDotnet.slnx
 ├── dotnet-tools.json
 ├── TodoApi/
