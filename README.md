@@ -38,6 +38,9 @@ dotnet --version
 ```text
 .
 ├── README.md
+├── Dockerfile
+├── compose.yaml
+├── .dockerignore
 ├── docs/
 │   └── learning/
 │       ├── 01-aspnet-core-parameters.md
@@ -123,6 +126,47 @@ curl http://localhost:5191
 
 ```text
 Todo API is running.
+```
+
+## Docker Composeで起動する
+
+Docker Desktopなど、Docker Composeを実行できる環境が必要です。リポジトリのルートで次を実行します。
+
+```bash
+docker compose up --build
+```
+
+APIは次のURLで利用できます。
+
+```text
+http://localhost:8080
+```
+
+ComposeではAPIとRedisを起動します。レート制限はRedisモードになり、SQLiteの`todo.db`は`todo-data`というNamed Volumeへ保存されます。ASP.NET CoreのData Protectionキーも`data-protection-keys`へ保存し、コンテナ再作成時に毎回変わらないようにしています。
+
+APIキーはデフォルトで`compose-dev-api-key`ですが、起動前に環境変数で変更できます。
+
+```bash
+TODO_API_KEY="your-local-api-key" docker compose up --build
+```
+
+停止するには、起動中のターミナルで`Ctrl+C`を押します。コンテナを削除するには次を実行します。
+
+```bash
+docker compose down
+```
+
+SQLiteのデータも削除する場合は、Named Volumeを明示的に削除します。
+
+```bash
+docker compose down --volumes
+```
+
+Composeのヘルスチェックを確認するには、別のターミナルで次を実行します。
+
+```bash
+docker compose ps
+curl http://localhost:8080/health
 ```
 
 ヘルスチェックを確認:

@@ -6,7 +6,7 @@
 
 ## 現在の学習テーマ
 
-現在は「コンテナでAPIを動かす基本を理解する」ステップです。
+現在は「Docker ComposeでAPIを起動する」ステップです。
 
 これまでの実装で学んだこと:
 
@@ -196,6 +196,15 @@
 - `CountAsync`や`SaveChangesAsync`へトークンを渡す理由
 - クライアント切断後の不要な処理を減らす考え方
 
+今回のDocker Composeで学ぶこと:
+
+- マルチステージDockerfileで.NETアプリをビルドする方法
+- 実行イメージとSDKイメージを分ける理由
+- ComposeでAPIとRedisを同時に起動する方法
+- Composeの環境変数で設定値を注入する方法
+- SQLiteのデータをNamed Volumeへ保存する考え方
+- コンテナのhealthcheckと`depends_on`の関係
+
 今回の基礎復習で学ぶこと:
 
 - 普通のC#メソッドで引数を渡す方法
@@ -302,6 +311,7 @@
 - Todo一覧にタイトル検索を追加する 完了
 - Todo一覧のソートを追加する 完了
 - DB処理へCancellationTokenを伝播する 完了
+- Docker ComposeでAPIとRedisを起動できるようにする 完了
 
 完了目安:
 

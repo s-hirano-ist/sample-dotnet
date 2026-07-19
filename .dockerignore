@@ -1,0 +1,14 @@
+.git
+.gitignore
+.dockerignore
+**/bin/
+**/obj/
+**/todo.db
+**/*.db-shm
+**/*.db-wal
+.vs/
+.vscode/
+README.md
+AGENTS.md
+docs/
+TodoApi.Tests/
