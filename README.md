@@ -41,6 +41,9 @@ dotnet --version
 ├── Dockerfile
 ├── compose.yaml
 ├── .dockerignore
+├── .github/
+│   └── workflows/
+│       └── ci.yml
 ├── docs/
 │   └── learning/
 │       ├── 01-aspnet-core-parameters.md
@@ -96,6 +99,8 @@ dotnet --version
 APIの入口は `TodoApi/Program.cs`、DB接続は `TodoApi/Data/`、DB変更履歴は `TodoApi/Migrations/`、Todoのデータ構造は `TodoApi/Models/`、リクエストの形は `TodoApi/Requests/`、Todo操作の処理は `TodoApi/Services/`、入力チェックとエラー形式は `TodoApi/Validation/` にあります。
 
 ASP.NET Coreの引数処理を基礎から学ぶ資料は `docs/learning/` にあります。
+
+GitHub ActionsのCI設定は `.github/workflows/ci.yml` にあります。pushやPull Request時に、.NETテスト、Compose設定、Dockerイメージビルドを自動検証します。
 
 テストは `TodoApi.Tests/TodoApiTests.cs` にあります。
 
