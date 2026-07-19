@@ -12,4 +12,5 @@ public static class ApiLogEvents
     public static readonly EventId TodoDeleted = new(1103, nameof(TodoDeleted));
     public static readonly EventId TodoUpdateNotFound = new(1104, nameof(TodoUpdateNotFound));
     public static readonly EventId TodoDeleteNotFound = new(1105, nameof(TodoDeleteNotFound));
+    public static readonly EventId RedisRateLimitFailed = new(1201, nameof(RedisRateLimitFailed));
 }

@@ -5,7 +5,7 @@ using StackExchange.Redis;
 
 // DistributedRateLimitMiddlewareは、Redisを共有カウンターとして使うレート制限です。
 // 複数のECSタスクやコンテナから同じRedisを見ることで、制限状態を共有できます。
-public class DistributedRateLimitMiddleware
+public partial class DistributedRateLimitMiddleware
 {
     private const string IncrementScript = """
         local current = redis.call('INCR', KEYS[1])
@@ -62,10 +62,17 @@ public class DistributedRateLimitMiddleware
         {
             // レート制限を共有できない場合は、制限を無視して処理を続けません。
             // 共有ストア障害時に保護を外さないため、503を返します。
-            _logger.LogError(exception, "Redis rate limit check failed");
+            LogRedisRateLimitFailed(exception);
             context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
         }
     }
+
+    [LoggerMessage(
+        EventId = 1201,
+        Level = LogLevel.Error,
+        Message = "Redis rate limit check failed."
+    )]
+    private partial void LogRedisRateLimitFailed(Exception exception);
 
     private static string GetPartitionKey(HttpContext context)
     {

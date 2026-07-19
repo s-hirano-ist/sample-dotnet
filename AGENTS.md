@@ -514,6 +514,7 @@
 - HTTPアクセスログを`LoggerMessage`ソース生成へ移行する 完了
 - 例外処理ログをEventId付き`LoggerMessage`へ移行する 完了
 - Todo操作ログをEventId付き`LoggerMessage`へ移行する 完了
+- Redisレート制限障害ログをEventId付き`LoggerMessage`へ移行する 完了
 
 完了目安:
 
