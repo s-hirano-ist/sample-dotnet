@@ -4,4 +4,5 @@ using Microsoft.Extensions.Logging;
 public static class ApiLogEvents
 {
     public static readonly EventId InvalidApiKey = new(1001, nameof(InvalidApiKey));
+    public static readonly EventId HttpRequestCompleted = new(1002, nameof(HttpRequestCompleted));
 }
