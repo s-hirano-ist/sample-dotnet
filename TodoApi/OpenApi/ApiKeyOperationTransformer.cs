@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi;
 
@@ -11,8 +12,13 @@ public sealed class ApiKeyOperationTransformer : IOpenApiOperationTransformer
         CancellationToken cancellationToken
     )
     {
-        // 現在のAPIでは、Todoの作成・更新・削除だけが認証必須です。
-        if (context.Description.HttpMethod is "POST" or "PUT" or "DELETE")
+        // RequireAuthorizationが追加した認証メタデータを確認します。
+        // HTTPメソッド名を直接判定しないため、認証ルールの変更に追従できます。
+        var requiresAuthorization = context.Description.ActionDescriptor.EndpointMetadata
+            .OfType<IAuthorizeData>()
+            .Any();
+
+        if (requiresAuthorization)
         {
             operation.Security ??= [];
             operation.Security.Add(

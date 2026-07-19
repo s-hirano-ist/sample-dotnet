@@ -318,6 +318,7 @@
 - レート制限ミドルウェアが`IOptions<RateLimitOptions>`を受け取る流れ
 - CORSのOrigin設定をOptionsへまとめて形式検証する方法
 - OpenAPIのSecurity Schemeを各操作へ関連付ける方法
+- エンドポイントメタデータから認証要否を判定する方法
 
 今回のCORSプリフライトテストで学ぶこと:
 
@@ -464,6 +465,7 @@
 - 許可していないOriginのCORSヘッダーをテストする 完了
 - CORSの許可メソッドとヘッダーを設定で限定する 完了
 - OpenAPIの認証要求を保護された操作へ関連付ける 完了
+- HTTPメソッドに依存しないOpenAPI認証判定へ改善する 完了
 
 完了目安:
 

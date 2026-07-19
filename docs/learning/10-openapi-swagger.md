@@ -145,6 +145,9 @@ DELETE /todos/{id}      -> X-API-Keyが必要
 
 仕様書の`security`項目を見ると、Swagger UIやクライアント生成ツールも認証要否を判断できます。
 
+認証要否はHTTPメソッド名ではなく、`RequireAuthorization()`が追加した`IAuthorizeData`を確認します。
+これにより、将来エンドポイントのHTTPメソッドや認証ルールを変更しても、OpenAPI定義とのずれを減らせます。
+
 ## 8. 開発環境だけでSwagger UIを有効にする理由
 
 Swagger UIは便利ですが、APIの構造を外部へ公開する画面でもあります。
