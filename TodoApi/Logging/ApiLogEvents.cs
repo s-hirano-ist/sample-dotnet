@@ -3,14 +3,17 @@ using Microsoft.Extensions.Logging;
 // ApiLogEventsは、運用で検索・集計するログイベントをまとめます。
 public static class ApiLogEvents
 {
-    public static readonly EventId InvalidApiKey = new(1001, nameof(InvalidApiKey));
-    public static readonly EventId HttpRequestCompleted = new(1002, nameof(HttpRequestCompleted));
-    public static readonly EventId UnhandledException = new(1003, nameof(UnhandledException));
-    public static readonly EventId RequestCanceled = new(1004, nameof(RequestCanceled));
-    public static readonly EventId TodoCreated = new(1101, nameof(TodoCreated));
-    public static readonly EventId TodoUpdated = new(1102, nameof(TodoUpdated));
-    public static readonly EventId TodoDeleted = new(1103, nameof(TodoDeleted));
-    public static readonly EventId TodoUpdateNotFound = new(1104, nameof(TodoUpdateNotFound));
-    public static readonly EventId TodoDeleteNotFound = new(1105, nameof(TodoDeleteNotFound));
-    public static readonly EventId RedisRateLimitFailed = new(1201, nameof(RedisRateLimitFailed));
+    public const int InvalidApiKeyId = 1001;
+    public const int HttpRequestCompletedId = 1002;
+    public const int UnhandledExceptionId = 1003;
+    public const int RequestCanceledId = 1004;
+    public const int TodoCreatedId = 1101;
+    public const int TodoUpdatedId = 1102;
+    public const int TodoDeletedId = 1103;
+    public const int TodoUpdateNotFoundId = 1104;
+    public const int TodoDeleteNotFoundId = 1105;
+    public const int RedisRateLimitFailedId = 1201;
+
+    public static readonly EventId InvalidApiKey = new(InvalidApiKeyId, nameof(InvalidApiKey));
+    public static readonly EventId HttpRequestCompleted = new(HttpRequestCompletedId, nameof(HttpRequestCompleted));
 }

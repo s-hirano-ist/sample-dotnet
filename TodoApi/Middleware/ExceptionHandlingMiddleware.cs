@@ -61,14 +61,14 @@ public partial class ExceptionHandlingMiddleware
     }
 
     [LoggerMessage(
-        EventId = 1003,
+        EventId = ApiLogEvents.UnhandledExceptionId,
         Level = LogLevel.Error,
         Message = "Unhandled exception while processing the request."
     )]
     private partial void LogUnhandledException(Exception exception);
 
     [LoggerMessage(
-        EventId = 1004,
+        EventId = ApiLogEvents.RequestCanceledId,
         Level = LogLevel.Debug,
         Message = "The request was canceled by the client."
     )]

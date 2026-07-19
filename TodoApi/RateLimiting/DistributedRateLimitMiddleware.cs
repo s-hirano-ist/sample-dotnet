@@ -68,7 +68,7 @@ public partial class DistributedRateLimitMiddleware
     }
 
     [LoggerMessage(
-        EventId = 1201,
+        EventId = ApiLogEvents.RedisRateLimitFailedId,
         Level = LogLevel.Error,
         Message = "Redis rate limit check failed."
     )]

@@ -161,18 +161,18 @@ public partial class TodoService
         return true;
     }
 
-    [LoggerMessage(EventId = 1101, Level = LogLevel.Information, Message = "Created todo with id {TodoId}")]
+    [LoggerMessage(EventId = ApiLogEvents.TodoCreatedId, Level = LogLevel.Information, Message = "Created todo with id {TodoId}")]
     private partial void LogTodoCreated(int todoId);
 
-    [LoggerMessage(EventId = 1102, Level = LogLevel.Information, Message = "Updated todo with id {TodoId}")]
+    [LoggerMessage(EventId = ApiLogEvents.TodoUpdatedId, Level = LogLevel.Information, Message = "Updated todo with id {TodoId}")]
     private partial void LogTodoUpdated(int todoId);
 
-    [LoggerMessage(EventId = 1103, Level = LogLevel.Information, Message = "Deleted todo with id {TodoId}")]
+    [LoggerMessage(EventId = ApiLogEvents.TodoDeletedId, Level = LogLevel.Information, Message = "Deleted todo with id {TodoId}")]
     private partial void LogTodoDeleted(int todoId);
 
-    [LoggerMessage(EventId = 1104, Level = LogLevel.Warning, Message = "Todo with id {TodoId} was not found for update")]
+    [LoggerMessage(EventId = ApiLogEvents.TodoUpdateNotFoundId, Level = LogLevel.Warning, Message = "Todo with id {TodoId} was not found for update")]
     private partial void LogTodoUpdateNotFound(int todoId);
 
-    [LoggerMessage(EventId = 1105, Level = LogLevel.Warning, Message = "Todo with id {TodoId} was not found for delete")]
+    [LoggerMessage(EventId = ApiLogEvents.TodoDeleteNotFoundId, Level = LogLevel.Warning, Message = "Todo with id {TodoId} was not found for delete")]
     private partial void LogTodoDeleteNotFound(int todoId);
 }

@@ -515,6 +515,7 @@
 - 例外処理ログをEventId付き`LoggerMessage`へ移行する 完了
 - Todo操作ログをEventId付き`LoggerMessage`へ移行する 完了
 - Redisレート制限障害ログをEventId付き`LoggerMessage`へ移行する 完了
+- EventIdの番号を定数へまとめて重複を減らす 完了
 
 完了目安:
 

@@ -115,7 +115,7 @@ public partial class ApiKeyAuthenticationHandler : AuthenticationHandler<Authent
     }
 
     [LoggerMessage(
-        EventId = 1001,
+        EventId = ApiLogEvents.InvalidApiKeyId,
         Level = LogLevel.Warning,
         Message = "API key authentication failed for path {Path}."
     )]

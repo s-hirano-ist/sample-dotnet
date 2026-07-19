@@ -39,7 +39,7 @@ public partial class RequestLoggingMiddleware
     }
 
     [LoggerMessage(
-        EventId = 1002,
+        EventId = ApiLogEvents.HttpRequestCompletedId,
         Level = LogLevel.Information,
         Message = "HTTP {HttpMethod} {Path} returned {StatusCode} in {ElapsedMilliseconds} ms"
     )]
