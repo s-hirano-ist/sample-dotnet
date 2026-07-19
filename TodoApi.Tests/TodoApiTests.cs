@@ -143,6 +143,12 @@ public class TodoApiTests
 
         // 認証情報がないため、HTTP 401 Unauthorizedを期待します。
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+
+        var problemDetails = await response.Content.ReadFromJsonAsync<JsonObject>();
+        Assert.NotNull(problemDetails);
+        Assert.Equal("Authentication is required.", problemDetails["title"]?.GetValue<string>());
+        Assert.Equal(401, problemDetails["status"]?.GetValue<int>());
     }
 
     [Fact]
@@ -159,6 +165,7 @@ public class TodoApiTests
 
         // キーが存在していても、値が一致しなければ401になります。
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
     }
 
     // [Fact] はxUnitの属性です。

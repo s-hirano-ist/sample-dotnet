@@ -2,6 +2,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Encodings.Web;
+using System.Text.Json;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
 
@@ -58,5 +59,21 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<AuthenticationS
         var ticket = new AuthenticationTicket(principal, Scheme.Name);
 
         return Task.FromResult(AuthenticateResult.Success(ticket));
+    }
+
+    protected override async Task HandleChallengeAsync(AuthenticationProperties properties)
+    {
+        // 認証情報の詳細は返さず、クライアントが扱いやすいProblemDetails形式にします。
+        Response.StatusCode = StatusCodes.Status401Unauthorized;
+        Response.ContentType = "application/problem+json";
+
+        var problemDetails = new
+        {
+            type = "https://httpstatuses.com/401",
+            title = "Authentication is required.",
+            status = StatusCodes.Status401Unauthorized
+        };
+
+        await JsonSerializer.SerializeAsync(Response.Body, problemDetails, JsonSerializerOptions.Web);
     }
 }

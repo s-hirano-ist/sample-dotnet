@@ -111,6 +111,18 @@ APIキーが一致しない
 
 このAPIの現在のAPIキー認証では、主に401を確認します。将来、ユーザーやロールを追加すると403も重要になります。
 
+このAPIでは、認証に失敗した場合も`application/problem+json`形式で次のようなレスポンスを返します。
+
+```json
+{
+  "type": "https://httpstatuses.com/401",
+  "title": "Authentication is required.",
+  "status": 401
+}
+```
+
+送信されたAPIキーや、正しいキーとの差分はレスポンスへ含めません。
+
 ## 6. Middlewareの順番
 
 認証・認可は、エンドポイントより前に設定します。
