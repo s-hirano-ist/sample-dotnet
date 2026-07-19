@@ -192,6 +192,26 @@ app.MapHealthChecks("/health")
     .WithSummary("Check application health")
     .WithDescription("Checks the database and configured external dependencies.");
 
+// /liveは、プロセス自体が動いているかだけを確認します。
+// 外部サービスを確認しないため、コンテナ再起動の判断に使えます。
+app.MapHealthChecks(
+        "/live",
+        new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+        {
+            Predicate = _ => false
+        }
+    )
+    .WithName("GetLiveness")
+    .WithSummary("Check process liveness")
+    .WithDescription("Returns healthy when the API process is running.");
+
+// /readyは、DBやRedisなど登録済みの依存サービスを確認します。
+// 依存サービスが使えないとき、ロードバランサーから外す判断に使えます。
+app.MapHealthChecks("/ready")
+    .WithName("GetReadiness")
+    .WithSummary("Check dependency readiness")
+    .WithDescription("Checks whether the API dependencies are available.");
+
 // GET /todos は、指定されたページのTodo一覧を返します。
 // クエリ文字列がない場合は、page=1、pageSize=20、全状態として扱います。
 app.MapGet("/todos", async (

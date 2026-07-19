@@ -158,6 +158,32 @@ public class TodoApiTests
     }
 
     [Fact]
+    public async Task GetLiveness_WhenApiProcessIsRunning_ReturnsOk()
+    {
+        using var factory = new TodoApiTestFactory();
+        using var client = factory.CreateClient();
+
+        // /liveはDBなどの外部依存先を確認せず、APIプロセスが動いているかだけを確認します。
+        var response = await client.GetAsync("/live");
+
+        // テスト用APIプロセスが動いているので、HTTP 200 OKを期待します。
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetReadiness_WhenDatabaseIsAvailable_ReturnsOk()
+    {
+        using var factory = new TodoApiTestFactory();
+        using var client = factory.CreateClient();
+
+        // /readyは、リクエストを受け付けるために必要な依存サービスを確認します。
+        var response = await client.GetAsync("/ready");
+
+        // テスト用SQLiteへ接続できるため、HTTP 200 OKを期待します。
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
     public async Task GetRoot_WithRequestId_ReturnsSameRequestId()
     {
         using var factory = new TodoApiTestFactory();
