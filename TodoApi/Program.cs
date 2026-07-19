@@ -30,6 +30,15 @@ builder.Services.AddCors(options =>
 // AddAuthenticationは、リクエストの認証方法を登録します。
 // 今回はX-API-Keyを確認する独自の認証ハンドラーを使います。
 builder.Services
+    .AddOptions<ApiKeyOptions>()
+    .Bind(builder.Configuration.GetSection("Authentication"))
+    .Validate(
+        options => !string.IsNullOrWhiteSpace(options.ApiKey),
+        "Authentication:ApiKey must be configured."
+    )
+    .ValidateOnStart();
+
+builder.Services
     .AddAuthentication("ApiKey")
     .AddScheme<AuthenticationSchemeOptions, ApiKeyAuthenticationHandler>("ApiKey", _ => { });
 

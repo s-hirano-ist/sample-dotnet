@@ -69,7 +69,8 @@ dotnet --version
 │       ├── 18-code-coverage.md
 │       ├── 19-container-registry.md
 │       ├── 20-ecs-fargate.md
-│       └── 21-security-scanning.md
+│       ├── 21-security-scanning.md
+│       └── 22-options-validation.md
 ├── SampleDotnet.slnx
 ├── dotnet-tools.json
 ├── TodoApi/

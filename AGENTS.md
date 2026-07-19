@@ -6,7 +6,7 @@
 
 ## 現在の学習テーマ
 
-現在は「LivenessとReadinessを分ける」ステップです。
+現在は「設定をOptionsへ束ねて起動時に検証する」ステップです。
 
 これまでの実装で学んだこと:
 
@@ -308,6 +308,13 @@
 - コンテナ再起動とロードバランサー切り離しで異なるURLを使う考え方
 - 既存のヘルスチェックURLとの互換性を保ちながら改善する方法
 
+今回のOptions設定検証で学ぶこと:
+
+- 設定値をC#のOptionsクラスへ束ねる方法
+- `Bind`で設定セクションを型へ変換する流れ
+- `Validate`と`ValidateOnStart`で起動時に設定ミスを検出する方法
+- 認証ハンドラーがDIからOptionsを受け取る仕組み
+
 基礎学習の資料:
 
 - `docs/learning/18-code-coverage.md`
@@ -438,6 +445,7 @@
 - CodeQLでC#コードを自動検査する 完了
 - Dependabotで依存関係を定期確認する 完了
 - Liveness用の`/live`とReadiness用の`/ready`を追加する 完了
+- APIキー設定をOptionsへ移し、起動時検証を追加する 完了
 
 完了目安:
 

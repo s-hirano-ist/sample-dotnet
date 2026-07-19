@@ -9,16 +9,16 @@ using Microsoft.Extensions.Options;
 // 学習用の簡易実装であり、本番環境では専用の認証基盤やシークレット管理を使います。
 public class ApiKeyAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
 {
-    private readonly IConfiguration _configuration;
+    private readonly ApiKeyOptions _apiKeyOptions;
 
     public ApiKeyAuthenticationHandler(
         IOptionsMonitor<AuthenticationSchemeOptions> options,
         ILoggerFactory logger,
         UrlEncoder encoder,
-        IConfiguration configuration
+        IOptions<ApiKeyOptions> apiKeyOptions
     ) : base(options, logger, encoder)
     {
-        _configuration = configuration;
+        _apiKeyOptions = apiKeyOptions.Value;
     }
 
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
@@ -30,7 +30,7 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<AuthenticationS
             return Task.FromResult(AuthenticateResult.NoResult());
         }
 
-        var expectedApiKey = _configuration["Authentication:ApiKey"];
+        var expectedApiKey = _apiKeyOptions.ApiKey;
 
         if (string.IsNullOrWhiteSpace(expectedApiKey))
         {
