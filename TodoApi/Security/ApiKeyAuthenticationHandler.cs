@@ -8,18 +8,21 @@ using Microsoft.Extensions.Options;
 
 // ApiKeyAuthenticationHandlerは、X-API-Keyヘッダーを確認する認証処理です。
 // 学習用の簡易実装であり、本番環境では専用の認証基盤やシークレット管理を使います。
-public class ApiKeyAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
+public partial class ApiKeyAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
 {
     private readonly ApiKeyOptions _apiKeyOptions;
+    private readonly ILogger _logger;
 
     public ApiKeyAuthenticationHandler(
         IOptionsMonitor<AuthenticationSchemeOptions> options,
         ILoggerFactory logger,
         UrlEncoder encoder,
-        IOptions<ApiKeyOptions> apiKeyOptions
+        IOptions<ApiKeyOptions> apiKeyOptions,
+        ILogger<ApiKeyAuthenticationHandler> typedLogger
     ) : base(options, logger, encoder)
     {
         _apiKeyOptions = apiKeyOptions.Value;
+        _logger = typedLogger;
     }
 
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
@@ -77,11 +80,7 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<AuthenticationS
         if (matchedCredential is null)
         {
             // APIキーの値は記録せず、失敗したパスだけを監査ログへ残します。
-            Logger.LogWarning(
-                ApiLogEvents.InvalidApiKey,
-                "API key authentication failed for path {Path}.",
-                Request.Path
-            );
+            LogInvalidApiKey(Request.Path);
             return Task.FromResult(AuthenticateResult.Fail("Invalid API key."));
         }
 
@@ -114,6 +113,13 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<AuthenticationS
         var expectedDigest = SHA256.HashData(expectedBytes);
         return CryptographicOperations.FixedTimeEquals(providedDigest, expectedDigest);
     }
+
+    [LoggerMessage(
+        EventId = 1001,
+        Level = LogLevel.Warning,
+        Message = "API key authentication failed for path {Path}."
+    )]
+    private partial void LogInvalidApiKey(string path);
 
     protected override async Task HandleChallengeAsync(AuthenticationProperties properties)
     {
