@@ -19,6 +19,9 @@ public sealed class SecurityHeadersMiddleware
             context.Response.Headers["X-Frame-Options"] = "DENY";
             // Refererから不要なURL情報を送らないようにします。
             context.Response.Headers["Referrer-Policy"] = "no-referrer";
+            // Todo APIが使わないブラウザ機能を無効にします。
+            context.Response.Headers["Permissions-Policy"] =
+                "camera=(), microphone=(), geolocation=()";
 
             // HTTPS接続時だけ、以後もHTTPSを使うようブラウザへ伝えます。
             // HTTP接続へこのヘッダーを返してもブラウザは安全な移行として扱えません。

@@ -475,6 +475,7 @@
 - HTTPメソッドに依存しないOpenAPI認証判定へ改善する 完了
 - セキュリティヘッダーを共通Middlewareで追加する 完了
 - HTTPS時だけHSTSヘッダーを追加する 完了
+- `Permissions-Policy`で不要なブラウザ機能を無効にする 完了
 
 完了目安:
 
