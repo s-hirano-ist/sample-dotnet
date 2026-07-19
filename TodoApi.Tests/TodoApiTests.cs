@@ -437,6 +437,54 @@ public class TodoApiTests
     }
 
     [Fact]
+    public async Task GetTodos_WithPaging_ReturnsNavigationLinksAndPreservesFilters()
+    {
+        using var factory = new TodoApiTestFactory();
+        using var client = factory.CreateClient();
+
+        for (var todoNumber = 1; todoNumber <= 3; todoNumber++)
+        {
+            var createResponse = await client.PostAsJsonAsync(
+                "/todos",
+                new { title = $"Work {todoNumber}" }
+            );
+            createResponse.EnsureSuccessStatusCode();
+        }
+
+        var response = await client.GetAsync(
+            "/todos?page=2&pageSize=1&isDone=false&search= Work &sortBy=title&sortOrder=desc"
+        );
+
+        response.EnsureSuccessStatusCode();
+
+        var linkHeader = response.Headers.GetValues("Link").Single();
+
+        Assert.Contains("</todos?page=1&pageSize=1&isDone=false&search=Work&sortBy=title&sortOrder=desc>; rel=\"first\"", linkHeader);
+        Assert.Contains("</todos?page=2&pageSize=1&isDone=false&search=Work&sortBy=title&sortOrder=desc>; rel=\"self\"", linkHeader);
+        Assert.Contains("</todos?page=1&pageSize=1&isDone=false&search=Work&sortBy=title&sortOrder=desc>; rel=\"prev\"", linkHeader);
+        Assert.Contains("</todos?page=3&pageSize=1&isDone=false&search=Work&sortBy=title&sortOrder=desc>; rel=\"next\"", linkHeader);
+        Assert.Contains("</todos?page=3&pageSize=1&isDone=false&search=Work&sortBy=title&sortOrder=desc>; rel=\"last\"", linkHeader);
+    }
+
+    [Fact]
+    public async Task GetTodos_WhenEmpty_ReturnsOnlyFirstAndSelfLinks()
+    {
+        using var factory = new TodoApiTestFactory();
+        using var client = factory.CreateClient();
+
+        var response = await client.GetAsync("/todos");
+
+        response.EnsureSuccessStatusCode();
+
+        var linkHeader = response.Headers.GetValues("Link").Single();
+
+        Assert.Equal(
+            "</todos?page=1&pageSize=20>; rel=\"first\", </todos?page=1&pageSize=20>; rel=\"self\"",
+            linkHeader
+        );
+    }
+
+    [Fact]
     public async Task GetTodos_WithInvalidPageSize_ReturnsBadRequest()
     {
         using var factory = new TodoApiTestFactory();

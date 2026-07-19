@@ -283,6 +283,7 @@ app.MapGet("/todos", async (
     string? search,
     string? sortBy,
     string? sortOrder,
+    HttpContext httpContext,
     CancellationToken cancellationToken,
     TodoService todoService
 ) =>
@@ -313,6 +314,9 @@ app.MapGet("/todos", async (
         sortOrder,
         cancellationToken
     );
+
+    // Linkヘッダーには、同じ条件で前後のページへ移動するURLを入れます。
+    httpContext.Response.Headers.Link = TodoPaginationLinks.Create(httpContext.Request, todos);
 
     return Results.Ok(todos);
 })
