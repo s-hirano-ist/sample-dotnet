@@ -6,7 +6,7 @@
 
 ## 現在の学習テーマ
 
-現在は「設定をOptionsへ束ねて起動時に検証する」ステップです。
+現在は「CORSのプリフライトリクエストをテストする」ステップです。
 
 これまでの実装で学んだこと:
 
@@ -318,6 +318,12 @@
 - レート制限ミドルウェアが`IOptions<RateLimitOptions>`を受け取る流れ
 - CORSのOrigin設定をOptionsへまとめて形式検証する方法
 
+今回のCORSプリフライトテストで学ぶこと:
+
+- ブラウザが本来のリクエスト前に送る`OPTIONS`の意味
+- `Access-Control-Request-Method`と`Access-Control-Request-Headers`の役割
+- CORSレスポンスの許可Origin・メソッド・ヘッダーをテストする方法
+
 基礎学習の資料:
 
 - `docs/learning/18-code-coverage.md`
@@ -451,6 +457,7 @@
 - APIキー設定をOptionsへ移し、起動時検証を追加する 完了
 - レート制限設定をOptionsへ移し、値を検証する 完了
 - CORSのOrigin設定をOptionsへ移し、URL形式を検証する 完了
+- CORSプリフライトリクエストをテストする 完了
 
 完了目安:
 

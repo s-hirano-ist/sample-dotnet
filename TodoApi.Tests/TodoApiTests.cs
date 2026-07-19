@@ -82,6 +82,33 @@ public class TodoApiTests
     }
 
     [Fact]
+    public async Task OptionsTodo_WithAllowedOrigin_ReturnsCorsPreflightHeaders()
+    {
+        using var factory = new TodoApiTestFactory();
+        using var client = factory.CreateClient();
+
+        // ブラウザがPOSTの前に送るプリフライトリクエストを再現します。
+        using var request = new HttpRequestMessage(HttpMethod.Options, "/todos");
+        request.Headers.Add("Origin", "http://localhost:3000");
+        request.Headers.Add("Access-Control-Request-Method", "POST");
+        request.Headers.Add("Access-Control-Request-Headers", "content-type,x-api-key");
+
+        var response = await client.SendAsync(request);
+
+        // CORSミドルウェアが、許可されたプリフライトとして応答します。
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+        Assert.Equal(
+            "http://localhost:3000",
+            response.Headers.GetValues("Access-Control-Allow-Origin").Single()
+        );
+        Assert.Contains("POST", response.Headers.GetValues("Access-Control-Allow-Methods").Single());
+        Assert.Contains(
+            "content-type",
+            response.Headers.GetValues("Access-Control-Allow-Headers").Single()
+        );
+    }
+
+    [Fact]
     public async Task PostTodo_WithoutApiKey_ReturnsUnauthorized()
     {
         using var factory = new TodoApiTestFactory();

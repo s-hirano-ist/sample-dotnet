@@ -47,7 +47,22 @@ Access-Control-Allow-Origin: http://localhost:3000
 
 ブラウザは、このレスポンスヘッダーを確認して、JavaScriptへレスポンスを公開します。
 
-## 4. CORSポリシーの登録
+## 4. プリフライトリクエスト
+
+ブラウザは、POSTやカスタムヘッダーを使うリクエストの前に、`OPTIONS`を送ることがあります。
+これをプリフライトリクエストと呼びます。
+
+```http
+OPTIONS /todos
+Origin: http://localhost:3000
+Access-Control-Request-Method: POST
+Access-Control-Request-Headers: content-type, x-api-key
+```
+
+APIは、許可しているOrigin・メソッド・ヘッダーをレスポンスで返します。
+ブラウザはその内容を確認してから、本来のPOSTを送信します。
+
+## 5. CORSポリシーの登録
 
 このAPIでは、`AddCors`でポリシーを登録しています。
 
