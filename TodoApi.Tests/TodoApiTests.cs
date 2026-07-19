@@ -38,6 +38,10 @@ public class TodoApiTests
         Assert.StartsWith("3.1.", document["openapi"]?.GetValue<string>());
         Assert.NotNull(document["paths"]?["/todos"]);
         Assert.Equal("List todos", document["paths"]?["/todos"]?["get"]?["summary"]?.GetValue<string>());
+        Assert.Equal(
+            "X-API-Key",
+            document["components"]?["securitySchemes"]?["ApiKey"]?["name"]?.GetValue<string>()
+        );
     }
 
     [Fact]

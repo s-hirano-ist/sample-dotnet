@@ -6,7 +6,7 @@
 
 ## 現在の学習テーマ
 
-現在は「OpenAPIへレスポンス契約を明示する」ステップです。
+現在は「セキュリティ自動検査を理解する」ステップです。
 
 これまでの実装で学んだこと:
 
@@ -287,9 +287,24 @@
 - ステータスコードごとのレスポンス契約を明示する考え方
 - 実装だけでなく生成されたOpenAPI JSONをテストする方法
 
+今回のOpenAPI認証定義で学ぶこと:
+
+- `IOpenApiDocumentTransformer`の役割
+- Security SchemeでAPIキー認証を表現する方法
+- Swagger UIのAuthorize入力欄とAPI認証の関係
+- 実装とAPI仕様書の認証方式を一致させる考え方
+
+今回のセキュリティ自動検査で学ぶこと:
+
+- CodeQLでC#コードの脆弱性パターンを検査する流れ
+- DependabotでNuGetパッケージとGitHub Actionsの更新を確認する方法
+- セキュリティ検査に必要なGitHub Actionsの権限
+- 検査結果をテストとレビューで確認してから変更を取り込む考え方
+
 基礎学習の資料:
 
 - `docs/learning/18-code-coverage.md`
+- `docs/learning/21-security-scanning.md`
 - `docs/learning/19-container-registry.md`
 - `docs/learning/20-ecs-fargate.md`
 - `docs/learning/21-security-scanning.md`
@@ -412,6 +427,9 @@
 - リクエストキャンセルを500へ変換しないようにする 完了
 - 無効なAPIキーの異常系テストを追加する 完了
 - OpenAPIへレスポンス契約を明示する 完了
+- OpenAPIへAPIキー認証を明示する 完了
+- CodeQLでC#コードを自動検査する 完了
+- Dependabotで依存関係を定期確認する 完了
 
 完了目安:
 

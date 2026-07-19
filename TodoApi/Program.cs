@@ -108,7 +108,11 @@ if (useRedisRateLimit)
 
 // AddOpenApi は、アプリのエンドポイントからOpenAPI形式の仕様書を作る機能を登録します。
 // OpenAPIは、APIのURL、HTTPメソッド、リクエスト、レスポンスなどを機械可読な形で表す標準です。
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(options =>
+{
+    // 実際のX-API-Key認証をOpenAPI仕様へ登録します。
+    options.AddDocumentTransformer<ApiKeyDocumentTransformer>();
+});
 
 // AddDbContext は、Entity Framework Coreで使うDbContextをDIコンテナに登録します。
 // ConnectionStrings:TodoDatabase は appsettings.json に書いたSQLiteの接続先です。
