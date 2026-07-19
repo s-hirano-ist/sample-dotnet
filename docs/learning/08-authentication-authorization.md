@@ -96,6 +96,9 @@ options.AddPolicy("TodoWrite", policy =>
 `RequireClaim`は「認証済みの利用者が必要な権限を持っていること」を確認します。
 この2つを分けることで、認証と認可の役割を明確にできます。
 
+権限はAPIキー設定の`Authentication:Permissions`からClaimとして付与します。
+例えば読み取り専用キーでは、`todo:write`を設定しなければ書き込み操作が403になります。
+
 このAPIでは、認証済みでも権限が不足している場合、403を`application/problem+json`で返します。
 401は認証失敗、403は認可失敗という違いを、ステータスコードとレスポンス形式で表します。
 

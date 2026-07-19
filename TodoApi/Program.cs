@@ -50,8 +50,10 @@ builder.Services
     .AddOptions<ApiKeyOptions>()
     .Bind(builder.Configuration.GetSection("Authentication"))
     .Validate(
-        options => !string.IsNullOrWhiteSpace(options.ApiKey),
-        "Authentication:ApiKey must be configured."
+        options =>
+            !string.IsNullOrWhiteSpace(options.ApiKey)
+            && options.Permissions.Length > 0,
+        "Authentication:ApiKey must be configured and Permissions must not be empty."
     )
     .ValidateOnStart();
 
