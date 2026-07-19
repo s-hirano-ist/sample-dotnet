@@ -710,6 +710,34 @@ public class TodoApiTests
     }
 
     [Fact]
+    public async Task DeleteTodo_WithStaleIfMatch_ReturnsPreconditionFailed()
+    {
+        using var factory = new TodoApiTestFactory();
+        using var client = factory.CreateClient();
+
+        var createResponse = await client.PostAsJsonAsync("/todos", new { title = "Delete concurrency" });
+        createResponse.EnsureSuccessStatusCode();
+
+        var getResponse = await client.GetAsync("/todos/1");
+        var staleEtag = getResponse.Headers.ETag?.ToString();
+        Assert.False(string.IsNullOrWhiteSpace(staleEtag));
+
+        var updateRequest = new HttpRequestMessage(HttpMethod.Put, "/todos/1")
+        {
+            Content = JsonContent.Create(new { title = "Changed before delete" })
+        };
+        updateRequest.Headers.TryAddWithoutValidation("If-Match", staleEtag);
+        var updateResponse = await client.SendAsync(updateRequest);
+        Assert.Equal(HttpStatusCode.OK, updateResponse.StatusCode);
+
+        using var deleteRequest = new HttpRequestMessage(HttpMethod.Delete, "/todos/1");
+        deleteRequest.Headers.TryAddWithoutValidation("If-Match", staleEtag);
+        var deleteResponse = await client.SendAsync(deleteRequest);
+
+        Assert.Equal(HttpStatusCode.PreconditionFailed, deleteResponse.StatusCode);
+    }
+
+    [Fact]
     public async Task PutTodo_WithValidRequest_UpdatesTodo()
     {
         using var factory = new TodoApiTestFactory();

@@ -520,6 +520,7 @@
 - `MeterListener`でメトリクスの出力をテストする 完了
 - Todo詳細取得へETagと条件付きGETを追加する 完了
 - PUTのIf-Matchで楽観的同時実行制御を追加する 完了
+- DELETEのIf-Matchでも楽観的同時実行制御を行う 完了
 
 完了目安:
 
