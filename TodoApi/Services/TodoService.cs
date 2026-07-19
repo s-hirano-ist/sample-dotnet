@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 
 // TodoServiceは、Todoを操作する処理をまとめたクラスです。
 // 今回からListではなく、Entity Framework Coreを通してSQLiteに保存します。
-public class TodoService
+public partial class TodoService
 {
     private readonly TodoDbContext _dbContext;
     private readonly ILogger<TodoService> _logger;
@@ -106,7 +106,7 @@ public class TodoService
 
         // {TodoId}は構造化ログのプレースホルダーです。
         // タイトル本文はログに出さず、操作とIDだけを記録します。
-        _logger.LogInformation("Created todo with id {TodoId}", todo.Id);
+        LogTodoCreated(todo.Id);
 
         return todo;
     }
@@ -121,7 +121,7 @@ public class TodoService
 
         if (existingTodo is null)
         {
-            _logger.LogWarning("Todo with id {TodoId} was not found for update", id);
+            LogTodoUpdateNotFound(id);
             return null;
         }
 
@@ -138,7 +138,7 @@ public class TodoService
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("Updated todo with id {TodoId}", id);
+        LogTodoUpdated(id);
 
         return existingTodo;
     }
@@ -149,15 +149,30 @@ public class TodoService
 
         if (todo is null)
         {
-            _logger.LogWarning("Todo with id {TodoId} was not found for delete", id);
+            LogTodoDeleteNotFound(id);
             return false;
         }
 
         _dbContext.Todos.Remove(todo);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("Deleted todo with id {TodoId}", id);
+        LogTodoDeleted(id);
 
         return true;
     }
+
+    [LoggerMessage(EventId = 1101, Level = LogLevel.Information, Message = "Created todo with id {TodoId}")]
+    private partial void LogTodoCreated(int todoId);
+
+    [LoggerMessage(EventId = 1102, Level = LogLevel.Information, Message = "Updated todo with id {TodoId}")]
+    private partial void LogTodoUpdated(int todoId);
+
+    [LoggerMessage(EventId = 1103, Level = LogLevel.Information, Message = "Deleted todo with id {TodoId}")]
+    private partial void LogTodoDeleted(int todoId);
+
+    [LoggerMessage(EventId = 1104, Level = LogLevel.Warning, Message = "Todo with id {TodoId} was not found for update")]
+    private partial void LogTodoUpdateNotFound(int todoId);
+
+    [LoggerMessage(EventId = 1105, Level = LogLevel.Warning, Message = "Todo with id {TodoId} was not found for delete")]
+    private partial void LogTodoDeleteNotFound(int todoId);
 }

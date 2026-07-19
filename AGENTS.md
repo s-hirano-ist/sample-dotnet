@@ -513,6 +513,7 @@
 - `LoggerMessage`ソース生成で認証失敗ログを定義する 完了
 - HTTPアクセスログを`LoggerMessage`ソース生成へ移行する 完了
 - 例外処理ログをEventId付き`LoggerMessage`へ移行する 完了
+- Todo操作ログをEventId付き`LoggerMessage`へ移行する 完了
 
 完了目安:
 
