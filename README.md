@@ -73,7 +73,8 @@ dotnet --version
 │       ├── 22-options-validation.md
 │       ├── 23-security-headers.md
 │       ├── 24-metrics.md
-│       └── 25-etag-caching.md
+│       ├── 25-etag-caching.md
+│       └── 26-optimistic-concurrency.md
 ├── SampleDotnet.slnx
 ├── dotnet-tools.json
 ├── TodoApi/

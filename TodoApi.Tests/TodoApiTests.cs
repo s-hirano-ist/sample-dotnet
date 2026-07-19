@@ -676,6 +676,40 @@ public class TodoApiTests
     }
 
     [Fact]
+    public async Task PutTodo_WithStaleIfMatch_ReturnsPreconditionFailed()
+    {
+        using var factory = new TodoApiTestFactory();
+        using var client = factory.CreateClient();
+
+        var createResponse = await client.PostAsJsonAsync("/todos", new { title = "Concurrency" });
+        createResponse.EnsureSuccessStatusCode();
+
+        var getResponse = await client.GetAsync("/todos/1");
+        var staleEtag = getResponse.Headers.ETag?.ToString();
+        Assert.False(string.IsNullOrWhiteSpace(staleEtag));
+
+        var firstUpdate = new HttpRequestMessage(HttpMethod.Put, "/todos/1")
+        {
+            Content = JsonContent.Create(new { title = "First update" })
+        };
+        firstUpdate.Headers.TryAddWithoutValidation("If-Match", staleEtag);
+        var firstUpdateResponse = await client.SendAsync(firstUpdate);
+        Assert.Equal(HttpStatusCode.OK, firstUpdateResponse.StatusCode);
+
+        var secondUpdate = new HttpRequestMessage(HttpMethod.Put, "/todos/1")
+        {
+            Content = JsonContent.Create(new { title = "Stale update" })
+        };
+        secondUpdate.Headers.TryAddWithoutValidation("If-Match", staleEtag);
+        var secondUpdateResponse = await client.SendAsync(secondUpdate);
+
+        Assert.Equal(HttpStatusCode.PreconditionFailed, secondUpdateResponse.StatusCode);
+        var problemDetails = await secondUpdateResponse.Content.ReadFromJsonAsync<JsonObject>();
+        Assert.NotNull(problemDetails);
+        Assert.Equal(412, problemDetails["status"]?.GetValue<int>());
+    }
+
+    [Fact]
     public async Task PutTodo_WithValidRequest_UpdatesTodo()
     {
         using var factory = new TodoApiTestFactory();

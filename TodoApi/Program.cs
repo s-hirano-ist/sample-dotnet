@@ -400,10 +400,31 @@ app.MapPost("/todos", async (
 app.MapPut("/todos/{id:int}", async (
     int id,
     UpdateTodoRequest request,
+    HttpContext httpContext,
     TodoService todoService,
     CancellationToken cancellationToken
 ) =>
 {
+    var currentTodo = await todoService.GetByIdAsync(id, cancellationToken);
+
+    if (currentTodo is null)
+    {
+        return Results.NotFound();
+    }
+
+    var currentEtag = TodoEtag.Create(currentTodo);
+    if (
+        httpContext.Request.Headers.TryGetValue("If-Match", out var ifMatch)
+        && !ifMatch.Any(value => value?.Trim() == currentEtag)
+    )
+    {
+        return Results.Problem(
+            type: "https://httpstatuses.com/412",
+            title: "The Todo was modified by another request.",
+            statusCode: StatusCodes.Status412PreconditionFailed
+        );
+    }
+
     var validation = TodoValidation.ValidateOptionalTitle(request.Title);
 
     if (!validation.IsValid)
@@ -418,6 +439,7 @@ app.MapPut("/todos/{id:int}", async (
         return Results.NotFound();
     }
 
+    httpContext.Response.Headers.ETag = TodoEtag.Create(updatedTodo);
     return Results.Ok(updatedTodo);
 })
     .WithName("UpdateTodo")
@@ -427,6 +449,7 @@ app.MapPut("/todos/{id:int}", async (
     .Produces<ApiError>(StatusCodes.Status400BadRequest)
     .Produces(StatusCodes.Status401Unauthorized)
     .Produces(StatusCodes.Status404NotFound)
+    .Produces<Microsoft.AspNetCore.Mvc.ProblemDetails>(StatusCodes.Status412PreconditionFailed)
     .Produces<Microsoft.AspNetCore.Mvc.ProblemDetails>(StatusCodes.Status500InternalServerError)
     .RequireAuthorization(ApiPolicyDefaults.TodoWriteAuthorizationPolicy)
     .RequireRateLimiting(ApiPolicyDefaults.RateLimitPolicy);
