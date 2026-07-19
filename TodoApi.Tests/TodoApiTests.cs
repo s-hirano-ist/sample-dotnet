@@ -9,6 +9,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 // namespace は、このファイル内のクラスが属する名前空間です。
 // API本体の TodoApi と区別するため、テスト側は TodoApi.Tests にしています。
@@ -168,6 +169,14 @@ public class TodoApiTests
         // キーが存在していても、値が一致しなければ401になります。
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
         Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+        Assert.Contains(
+            factory.LoggerProvider.Messages,
+            message => message.Contains("API key authentication failed for path /todos")
+        );
+        Assert.DoesNotContain(
+            factory.LoggerProvider.Messages,
+            message => message.Contains("wrong-api-key")
+        );
     }
 
     [Fact]
@@ -761,6 +770,8 @@ public class TodoApiTests
 // 本番用のSQLiteファイルではなく、テストごとにメモリ上のSQLiteを使います。
 public class TodoApiTestFactory : WebApplicationFactory<Program>
 {
+    public TestLoggerProvider LoggerProvider { get; } = new();
+
     protected override void ConfigureClient(HttpClient client)
     {
         base.ConfigureClient(client);
@@ -812,6 +823,8 @@ public class TodoApiTestFactory : WebApplicationFactory<Program>
                 options.UseSqlite(connection);
             });
         });
+
+        builder.ConfigureLogging(logging => logging.AddProvider(LoggerProvider));
     }
 
     protected virtual void ConfigureAdditionalTestConfiguration(IConfigurationBuilder configuration)
