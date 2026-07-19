@@ -28,6 +28,17 @@ public class TodoDbContext : DbContext
 
             entity.Property(todo => todo.CreatedAt)
                 .IsRequired();
+
+            // 一覧で使うフィルターと並び替えに合わせてインデックスを作ります。
+            // 複合インデックスは、IsDoneで絞り込みCreatedAtで並べる検索を想定しています。
+            entity.HasIndex(todo => new { todo.IsDone, todo.CreatedAt, todo.Id })
+                .HasDatabaseName("IX_Todos_IsDone_CreatedAt_Id");
+
+            entity.HasIndex(todo => new { todo.CreatedAt, todo.Id })
+                .HasDatabaseName("IX_Todos_CreatedAt_Id");
+
+            entity.HasIndex(todo => new { todo.Title, todo.Id })
+                .HasDatabaseName("IX_Todos_Title_Id");
         });
     }
 }
