@@ -76,6 +76,11 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<AuthenticationS
 
         if (matchedCredential is null)
         {
+            // APIキーの値は記録せず、失敗したパスだけを監査ログへ残します。
+            Logger.LogWarning(
+                "API key authentication failed for path {Path}.",
+                Request.Path
+            );
             return Task.FromResult(AuthenticateResult.Fail("Invalid API key."));
         }
 
