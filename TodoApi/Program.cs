@@ -21,6 +21,10 @@ builder.Services
             ),
         "Cors:AllowedOrigins must contain at least one absolute HTTP or HTTPS origin."
     )
+    .Validate(
+        options => options.AllowedMethods.Length > 0 && options.AllowedHeaders.Length > 0,
+        "Cors:AllowedMethods and Cors:AllowedHeaders must not be empty."
+    )
     .ValidateOnStart();
 
 // CORSの設定をOptionsと同じ型へ読み込み、ポリシー作成に使います。
@@ -33,8 +37,8 @@ builder.Services.AddCors(options =>
     {
         policy
             .WithOrigins(allowedOrigins)
-            .AllowAnyHeader()
-            .AllowAnyMethod();
+            .WithMethods(corsOptions.AllowedMethods)
+            .WithHeaders(corsOptions.AllowedHeaders);
     });
 });
 

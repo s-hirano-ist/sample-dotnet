@@ -76,16 +76,17 @@ builder.Services.AddCors(options =>
     {
         policy
             .WithOrigins(allowedOrigins)
-            .AllowAnyHeader()
-            .AllowAnyMethod();
+            .WithMethods(corsOptions.AllowedMethods)
+            .WithHeaders(corsOptions.AllowedHeaders);
     });
 });
 ```
 
-この設定は次の意味です。
+この設定は、設定ファイルに書いたOrigin・HTTPメソッド・ヘッダーだけを許可するという意味です。
 
 ```text
 Frontendという名前のポリシーを作る
+許可対象を明示したOrigin・メソッド・ヘッダーに限定する
 許可するオリジンを指定する
 任意のリクエストヘッダーを許可する
 任意のHTTPメソッドを許可する

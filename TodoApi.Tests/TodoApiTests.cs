@@ -103,7 +103,7 @@ public class TodoApiTests
         );
         Assert.Contains("POST", response.Headers.GetValues("Access-Control-Allow-Methods").Single());
         Assert.Contains(
-            "content-type",
+            "Content-Type",
             response.Headers.GetValues("Access-Control-Allow-Headers").Single()
         );
     }

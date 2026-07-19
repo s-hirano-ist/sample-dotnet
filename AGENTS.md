@@ -324,6 +324,7 @@
 - `Access-Control-Request-Method`と`Access-Control-Request-Headers`の役割
 - CORSレスポンスの許可Origin・メソッド・ヘッダーをテストする方法
 - 許可していないOriginにCORSヘッダーを返さないことを確認する方法
+- `AllowAnyMethod`や`AllowAnyHeader`を使わず許可範囲を明示する方法
 
 基礎学習の資料:
 
@@ -460,6 +461,7 @@
 - CORSのOrigin設定をOptionsへ移し、URL形式を検証する 完了
 - CORSプリフライトリクエストをテストする 完了
 - 許可していないOriginのCORSヘッダーをテストする 完了
+- CORSの許可メソッドとヘッダーを設定で限定する 完了
 
 完了目安:
 
