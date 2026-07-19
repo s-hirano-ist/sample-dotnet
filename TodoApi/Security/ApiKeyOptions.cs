@@ -6,4 +6,7 @@ public sealed class ApiKeyOptions
 
     // 認証成功時に付与する権限です。既定ではTodoを書き込めます。
     public string[] Permissions { get; set; } = Array.Empty<string>();
+
+    // キーのローテーション期間に、一時的に受け付ける追加キーです。
+    public string[] AdditionalApiKeys { get; set; } = Array.Empty<string>();
 }

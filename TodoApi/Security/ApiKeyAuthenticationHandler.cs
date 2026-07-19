@@ -31,20 +31,20 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<AuthenticationS
             return Task.FromResult(AuthenticateResult.NoResult());
         }
 
-        var expectedApiKey = _apiKeyOptions.ApiKey;
+        // 固定時間比較は、キーの比較時間から値を推測されにくくするために使います。
+        // ローテーション中は、現在のキーと追加キーをすべて確認します。
+        var providedBytes = Encoding.UTF8.GetBytes(providedApiKey.ToString());
+        var expectedApiKeys = new[] { _apiKeyOptions.ApiKey }
+            .Concat(_apiKeyOptions.AdditionalApiKeys);
+        var isValidApiKey = false;
 
-        if (string.IsNullOrWhiteSpace(expectedApiKey))
+        foreach (var expectedApiKey in expectedApiKeys)
         {
-            return Task.FromResult(
-                AuthenticateResult.Fail("API key is not configured.")
-            );
+            var expectedBytes = Encoding.UTF8.GetBytes(expectedApiKey);
+            isValidApiKey |= CryptographicOperations.FixedTimeEquals(providedBytes, expectedBytes);
         }
 
-        // 固定時間比較は、キーの比較時間から値を推測されにくくするために使います。
-        var providedBytes = Encoding.UTF8.GetBytes(providedApiKey.ToString());
-        var expectedBytes = Encoding.UTF8.GetBytes(expectedApiKey);
-
-        if (!CryptographicOperations.FixedTimeEquals(providedBytes, expectedBytes))
+        if (!isValidApiKey)
         {
             return Task.FromResult(AuthenticateResult.Fail("Invalid API key."));
         }

@@ -186,6 +186,20 @@ public class TodoApiTests
         Assert.Equal(403, problemDetails["status"]?.GetValue<int>());
     }
 
+    [Fact]
+    public async Task PostTodo_WithAdditionalApiKey_IsAcceptedDuringRotation()
+    {
+        using var factory = new TodoApiTestFactory();
+        using var client = factory.CreateClient();
+
+        client.DefaultRequestHeaders.Remove(ApiKeyAuthenticationDefaults.HeaderName);
+        client.DefaultRequestHeaders.Add(ApiKeyAuthenticationDefaults.HeaderName, "rotating-api-key");
+
+        var response = await client.PostAsJsonAsync("/todos", new { title = "Rotated key" });
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+    }
+
     // [Fact] はxUnitの属性です。
     // このメソッドが「1つのテストケース」であることを表します。
     [Fact]
@@ -750,7 +764,8 @@ public class TodoApiTestFactory : WebApplicationFactory<Program>
         {
             configuration.AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["Authentication:ApiKey"] = "test-api-key"
+                ["Authentication:ApiKey"] = "test-api-key",
+                ["Authentication:AdditionalApiKeys:0"] = "rotating-api-key"
             });
 
             // 派生テストファクトリが、共通設定より後に設定を追加できるようにします。
