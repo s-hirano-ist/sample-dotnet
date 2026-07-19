@@ -168,6 +168,24 @@ public class TodoApiTests
         Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
     }
 
+    [Fact]
+    public async Task PostTodo_WithReadOnlyPermission_ReturnsForbidden()
+    {
+        using var factory = new TodoApiReadOnlyTestFactory();
+        using var client = factory.CreateClient();
+
+        // APIキーは正しいものの、todo:write権限を持たないクライアントを再現します。
+        var response = await client.PostAsJsonAsync("/todos", new { title = "Read only" });
+
+        // 認証は成功しているため401ではなく、認可失敗の403になります。
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+
+        var problemDetails = await response.Content.ReadFromJsonAsync<JsonObject>();
+        Assert.NotNull(problemDetails);
+        Assert.Equal(403, problemDetails["status"]?.GetValue<int>());
+    }
+
     // [Fact] はxUnitの属性です。
     // このメソッドが「1つのテストケース」であることを表します。
     [Fact]
@@ -734,6 +752,9 @@ public class TodoApiTestFactory : WebApplicationFactory<Program>
             {
                 ["Authentication:ApiKey"] = "test-api-key"
             });
+
+            // 派生テストファクトリが、共通設定より後に設定を追加できるようにします。
+            ConfigureAdditionalTestConfiguration(configuration);
         });
 
         builder.ConfigureServices(services =>
@@ -759,6 +780,25 @@ public class TodoApiTestFactory : WebApplicationFactory<Program>
             {
                 options.UseSqlite(connection);
             });
+        });
+    }
+
+    protected virtual void ConfigureAdditionalTestConfiguration(IConfigurationBuilder configuration)
+    {
+    }
+}
+
+// TodoApiReadOnlyTestFactoryは、認証は成功するが書き込み権限がない設定を作ります。
+public class TodoApiReadOnlyTestFactory : TodoApiTestFactory
+{
+    protected override void ConfigureAdditionalTestConfiguration(IConfigurationBuilder configuration)
+    {
+        base.ConfigureAdditionalTestConfiguration(configuration);
+
+        configuration.AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            // 配列のPermissionsを読み取り権限だけで上書きします。
+            ["Authentication:Permissions:0"] = "todo:read"
         });
     }
 }

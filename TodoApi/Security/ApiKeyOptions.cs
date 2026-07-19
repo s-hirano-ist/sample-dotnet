@@ -5,5 +5,5 @@ public sealed class ApiKeyOptions
     public string ApiKey { get; set; } = string.Empty;
 
     // 認証成功時に付与する権限です。既定ではTodoを書き込めます。
-    public string[] Permissions { get; set; } = ["todo:write"];
+    public string[] Permissions { get; set; } = Array.Empty<string>();
 }
