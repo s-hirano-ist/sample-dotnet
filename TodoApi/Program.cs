@@ -10,6 +10,9 @@ using StackExchange.Redis;
 // args には、コマンドライン引数が入ります。今は特別な引数を使っていません。
 var builder = WebApplication.CreateBuilder(args);
 
+// 冪等性キーの結果をAPIプロセス内で共有するため、Singletonとして登録します。
+builder.Services.AddSingleton<TodoIdempotencyStore>();
+
 // CORSは、ブラウザから別のオリジンにあるAPIを呼び出すときの許可ルールです。
 // 許可するオリジンはコードに直接書かず、appsettings.jsonから読み込みます。
 builder.Services.AddSingleton<IValidateOptions<CorsOptions>, CorsOptionsValidator>();
@@ -398,7 +401,9 @@ app.MapMethods("/todos/{id:int}", new[] { "HEAD" }, async (
 // リクエストボディのJSONは、CreateTodoRequest型として受け取れます。
 app.MapPost("/todos", async (
     CreateTodoRequest request,
+    HttpContext httpContext,
     TodoService todoService,
+    TodoIdempotencyStore idempotencyStore,
     CancellationToken cancellationToken
 ) =>
 {
@@ -409,7 +414,49 @@ app.MapPost("/todos", async (
         return Results.BadRequest(validation.Error);
     }
 
-    var todo = await todoService.CreateAsync(request, cancellationToken);
+    var idempotencyValidation = TodoIdempotencyKey.Validate(httpContext.Request, out var idempotencyKey);
+
+    if (!idempotencyValidation.IsValid)
+    {
+        return Results.BadRequest(idempotencyValidation.Error);
+    }
+
+    TodoItem todo;
+    var isReplay = false;
+
+    if (idempotencyKey is null)
+    {
+        todo = await todoService.CreateAsync(request, cancellationToken);
+    }
+    else
+    {
+        var clientScope = httpContext.User.Identity?.Name ?? "unknown";
+        var result = await idempotencyStore.ExecuteAsync(
+            clientScope,
+            idempotencyKey,
+            TodoRequestFingerprint.Create(request),
+            () => todoService.CreateAsync(request, cancellationToken),
+            cancellationToken
+        );
+
+        if (result.Todo is null)
+        {
+            return Results.Conflict(
+                new ApiError(
+                    "idempotency_key_reused",
+                    "The Idempotency-Key was already used with a different request."
+                )
+            );
+        }
+
+        todo = result.Todo;
+        isReplay = result.IsReplay;
+    }
+
+    if (isReplay)
+    {
+        httpContext.Response.Headers[TodoIdempotencyDefaults.ReplayHeaderName] = "true";
+    }
 
     // Created はHTTP 201 Createdを返します。
     // 第1引数には、作成されたリソースのURLを入れます。
@@ -420,6 +467,7 @@ app.MapPost("/todos", async (
     .WithDescription("Creates a new incomplete todo.")
     .Produces<TodoItem>(StatusCodes.Status201Created)
     .Produces<ApiError>(StatusCodes.Status400BadRequest)
+    .Produces<ApiError>(StatusCodes.Status409Conflict)
     .Produces(StatusCodes.Status401Unauthorized)
     .Produces<Microsoft.AspNetCore.Mvc.ProblemDetails>(StatusCodes.Status500InternalServerError)
     .RequireAuthorization(ApiPolicyDefaults.TodoWriteAuthorizationPolicy)

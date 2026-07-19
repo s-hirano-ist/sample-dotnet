@@ -642,6 +642,75 @@ public class TodoApiTests
     }
 
     [Fact]
+    public async Task PostTodos_WithSameIdempotencyKey_ReturnsTheOriginalTodo()
+    {
+        using var factory = new TodoApiTestFactory();
+        using var client = factory.CreateClient();
+        client.DefaultRequestHeaders.Add("Idempotency-Key", "create-todo-1");
+
+        var firstResponse = await client.PostAsJsonAsync(
+            "/todos",
+            new { title = "Only once" }
+        );
+        var secondResponse = await client.PostAsJsonAsync(
+            "/todos",
+            new { title = "Only once" }
+        );
+
+        Assert.Equal(HttpStatusCode.Created, firstResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.Created, secondResponse.StatusCode);
+        Assert.Equal("true", secondResponse.Headers.GetValues("Idempotency-Replayed").Single());
+
+        var firstTodo = await firstResponse.Content.ReadFromJsonAsync<JsonObject>();
+        var secondTodo = await secondResponse.Content.ReadFromJsonAsync<JsonObject>();
+        Assert.NotNull(firstTodo);
+        Assert.NotNull(secondTodo);
+        Assert.Equal(firstTodo["id"]?.GetValue<int>(), secondTodo["id"]?.GetValue<int>());
+    }
+
+    [Fact]
+    public async Task PostTodos_WithSameIdempotencyKeyAndDifferentRequest_ReturnsConflict()
+    {
+        using var factory = new TodoApiTestFactory();
+        using var client = factory.CreateClient();
+        client.DefaultRequestHeaders.Add("Idempotency-Key", "create-todo-2");
+
+        var firstResponse = await client.PostAsJsonAsync(
+            "/todos",
+            new { title = "First request" }
+        );
+        var conflictResponse = await client.PostAsJsonAsync(
+            "/todos",
+            new { title = "Different request" }
+        );
+
+        Assert.Equal(HttpStatusCode.Created, firstResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.Conflict, conflictResponse.StatusCode);
+
+        var error = await conflictResponse.Content.ReadFromJsonAsync<JsonObject>();
+        Assert.NotNull(error);
+        Assert.Equal("idempotency_key_reused", error["code"]?.GetValue<string>());
+    }
+
+    [Fact]
+    public async Task PostTodos_WithTooLongIdempotencyKey_ReturnsBadRequest()
+    {
+        using var factory = new TodoApiTestFactory();
+        using var client = factory.CreateClient();
+        client.DefaultRequestHeaders.Add("Idempotency-Key", new string('x', 256));
+
+        var response = await client.PostAsJsonAsync(
+            "/todos",
+            new { title = "Invalid key" }
+        );
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var error = await response.Content.ReadFromJsonAsync<JsonObject>();
+        Assert.NotNull(error);
+        Assert.Equal("idempotency_key_invalid", error["code"]?.GetValue<string>());
+    }
+
+    [Fact]
     public async Task PostTodos_WithBlankTitle_ReturnsBadRequest()
     {
         using var factory = new TodoApiTestFactory();
