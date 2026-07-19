@@ -46,7 +46,8 @@ dotnet --version
 │       ├── 04-async-await.md
 │       ├── 05-entity-framework-core.md
 │       ├── 06-dotnet-testing.md
-│       └── 07-configuration.md
+│       ├── 07-configuration.md
+│       └── 08-authentication-authorization.md
 ├── SampleDotnet.slnx
 ├── dotnet-tools.json
 ├── TodoApi/
