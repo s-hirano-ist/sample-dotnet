@@ -12,17 +12,20 @@ public partial class ApiKeyAuthenticationHandler : AuthenticationHandler<Authent
 {
     private readonly ApiKeyOptions _apiKeyOptions;
     private readonly ILogger _logger;
+    private readonly TimeProvider _timeProvider;
 
     public ApiKeyAuthenticationHandler(
         IOptionsMonitor<AuthenticationSchemeOptions> options,
         ILoggerFactory logger,
         UrlEncoder encoder,
         IOptions<ApiKeyOptions> apiKeyOptions,
-        ILogger<ApiKeyAuthenticationHandler> typedLogger
+        ILogger<ApiKeyAuthenticationHandler> typedLogger,
+        TimeProvider timeProvider
     ) : base(options, logger, encoder)
     {
         _apiKeyOptions = apiKeyOptions.Value;
         _logger = typedLogger;
+        _timeProvider = timeProvider;
     }
 
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
@@ -45,7 +48,9 @@ public partial class ApiKeyAuthenticationHandler : AuthenticationHandler<Authent
                 new ApiKeyCredential(
                     _apiKeyOptions.ApiKey,
                     ApiKeyClaimDefaults.ClientName,
-                    _apiKeyOptions.Permissions
+                    _apiKeyOptions.Permissions,
+                    null,
+                    false
                 )
             );
         }
@@ -55,13 +60,21 @@ public partial class ApiKeyAuthenticationHandler : AuthenticationHandler<Authent
                 key => new ApiKeyCredential(
                     key,
                     ApiKeyClaimDefaults.ClientName,
-                    _apiKeyOptions.Permissions
+                    _apiKeyOptions.Permissions,
+                    null,
+                    false
                 )
             )
         );
         credentials.AddRange(
             _apiKeyOptions.Clients.Select(
-                client => new ApiKeyCredential(client.Key, client.Name, client.Permissions)
+                client => new ApiKeyCredential(
+                    client.Key,
+                    client.Name,
+                    client.Permissions,
+                    client.ExpiresAtUtc,
+                    client.Revoked
+                )
             )
         );
 
@@ -80,9 +93,26 @@ public partial class ApiKeyAuthenticationHandler : AuthenticationHandler<Authent
         if (matchedCredential is null)
         {
             // APIキーの値は記録せず、失敗したパスだけを監査ログへ残します。
-            LogInvalidApiKey(Request.Path);
+            LogInvalidApiKey(Request.Path, "invalid");
             return Task.FromResult(AuthenticateResult.Fail("Invalid API key."));
         }
+
+        if (matchedCredential.Revoked)
+        {
+            LogInvalidApiKey(Request.Path, "revoked");
+            return Task.FromResult(AuthenticateResult.Fail("Invalid API key."));
+        }
+
+        if (
+            matchedCredential.ExpiresAtUtc.HasValue
+            && matchedCredential.ExpiresAtUtc.Value <= _timeProvider.GetUtcNow()
+        )
+        {
+            LogInvalidApiKey(Request.Path, "expired");
+            return Task.FromResult(AuthenticateResult.Fail("Invalid API key."));
+        }
+
+        LogApiKeyAuthenticated(matchedCredential.Name, Request.Path);
 
         // 認証に成功したユーザーを表すClaimsPrincipalを作ります。
         var claims = new List<Claim>
@@ -103,7 +133,13 @@ public partial class ApiKeyAuthenticationHandler : AuthenticationHandler<Authent
         return Task.FromResult(AuthenticateResult.Success(ticket));
     }
 
-    private sealed record ApiKeyCredential(string Key, string Name, string[] Permissions);
+    private sealed record ApiKeyCredential(
+        string Key,
+        string Name,
+        string[] Permissions,
+        DateTimeOffset? ExpiresAtUtc,
+        bool Revoked
+    );
 
     private static bool KeysMatch(byte[] providedBytes, byte[] expectedBytes)
     {
@@ -117,9 +153,16 @@ public partial class ApiKeyAuthenticationHandler : AuthenticationHandler<Authent
     [LoggerMessage(
         EventId = ApiLogEvents.InvalidApiKeyId,
         Level = LogLevel.Warning,
-        Message = "API key authentication failed for path {Path}."
+        Message = "API key authentication failed for path {Path}. Reason: {Reason}."
     )]
-    private partial void LogInvalidApiKey(string path);
+    private partial void LogInvalidApiKey(string path, string reason);
+
+    [LoggerMessage(
+        EventId = ApiLogEvents.ApiKeyAuthenticatedId,
+        Level = LogLevel.Information,
+        Message = "API key authenticated for client {ClientName} on path {Path}."
+    )]
+    private partial void LogApiKeyAuthenticated(string clientName, string path);
 
     protected override async Task HandleChallengeAsync(AuthenticationProperties properties)
     {

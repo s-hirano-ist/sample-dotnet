@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 public static class ApiLogEvents
 {
     public const int InvalidApiKeyId = 1001;
+    public const int ApiKeyAuthenticatedId = 1005;
     public const int HttpRequestCompletedId = 1002;
     public const int UnhandledExceptionId = 1003;
     public const int RequestCanceledId = 1004;

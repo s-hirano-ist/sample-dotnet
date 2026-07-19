@@ -36,6 +36,29 @@ public class ApiKeyOptionsValidatorTests
     }
 
     [Fact]
+    public void Validate_WithExpiredClientConfiguration_Succeeds()
+    {
+        var result = new ApiKeyOptionsValidator().Validate(
+            null,
+            new ApiKeyOptions
+            {
+                Clients =
+                [
+                    new ApiKeyClientOptions
+                    {
+                        Name = "expired-client",
+                        Key = "key",
+                        Permissions = ["todo:read"],
+                        ExpiresAtUtc = DateTimeOffset.UtcNow.AddMinutes(-1)
+                    }
+                ]
+            }
+        );
+
+        Assert.Equal(ValidateOptionsResult.Success, result);
+    }
+
+    [Fact]
     public void Validate_WithIncompleteClient_Fails()
     {
         var validator = new ApiKeyOptionsValidator();

@@ -229,6 +229,32 @@ public class TodoApiTests
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
+    [Fact]
+    public async Task PostTodo_WithExpiredClientKey_ReturnsUnauthorized()
+    {
+        using var factory = new TodoApiExpiredClientTestFactory();
+        using var client = factory.CreateClient();
+        client.DefaultRequestHeaders.Remove(ApiKeyAuthenticationDefaults.HeaderName);
+        client.DefaultRequestHeaders.Add(ApiKeyAuthenticationDefaults.HeaderName, "expired-client-key");
+
+        var response = await client.PostAsJsonAsync("/todos", new { title = "Expired" });
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task PostTodo_WithRevokedClientKey_ReturnsUnauthorized()
+    {
+        using var factory = new TodoApiRevokedClientTestFactory();
+        using var client = factory.CreateClient();
+        client.DefaultRequestHeaders.Remove(ApiKeyAuthenticationDefaults.HeaderName);
+        client.DefaultRequestHeaders.Add(ApiKeyAuthenticationDefaults.HeaderName, "revoked-client-key");
+
+        var response = await client.PostAsJsonAsync("/todos", new { title = "Revoked" });
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
     // [Fact] はxUnitの属性です。
     // このメソッドが「1つのテストケース」であることを表します。
     [Fact]
@@ -618,6 +644,10 @@ public class TodoApiTests
 
         // HttpStatusCode.Created はHTTP 201 Createdを表す列挙値です。
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        Assert.Contains(
+            factory.LoggerProvider.Events,
+            eventId => eventId.Id == ApiLogEvents.ApiKeyAuthenticatedId
+        );
 
         // Locationヘッダーには、作成されたリソースのURLが入ります。
         // ?. はnull条件演算子で、LocationがnullならOriginalStringを読まずにnullを返します。
@@ -1080,6 +1110,38 @@ public class TodoApiClientTestFactory : TodoApiTestFactory
             ["Authentication:Clients:0:Name"] = "read-only-client",
             ["Authentication:Clients:0:Key"] = "read-only-client-key",
             ["Authentication:Clients:0:Permissions:0"] = "todo:read"
+        });
+    }
+}
+
+public sealed class TodoApiExpiredClientTestFactory : TodoApiTestFactory
+{
+    protected override void ConfigureAdditionalTestConfiguration(IConfigurationBuilder configuration)
+    {
+        base.ConfigureAdditionalTestConfiguration(configuration);
+
+        configuration.AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            ["Authentication:Clients:0:Name"] = "expired-client",
+            ["Authentication:Clients:0:Key"] = "expired-client-key",
+            ["Authentication:Clients:0:Permissions:0"] = "todo:write",
+            ["Authentication:Clients:0:ExpiresAtUtc"] = DateTimeOffset.UtcNow.AddMinutes(-1).ToString("O")
+        });
+    }
+}
+
+public sealed class TodoApiRevokedClientTestFactory : TodoApiTestFactory
+{
+    protected override void ConfigureAdditionalTestConfiguration(IConfigurationBuilder configuration)
+    {
+        base.ConfigureAdditionalTestConfiguration(configuration);
+
+        configuration.AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            ["Authentication:Clients:0:Name"] = "revoked-client",
+            ["Authentication:Clients:0:Key"] = "revoked-client-key",
+            ["Authentication:Clients:0:Permissions:0"] = "todo:write",
+            ["Authentication:Clients:0:Revoked"] = "true"
         });
     }
 }

@@ -80,7 +80,8 @@ dotnet --version
 │       ├── 29-idempotency-expiration.md
 │       ├── 30-opentelemetry.md
 │       ├── 31-redis-idempotency.md
-│       └── 32-database-indexes.md
+│       ├── 32-database-indexes.md
+│       └── 33-api-key-lifecycle.md
 ├── SampleDotnet.slnx
 ├── dotnet-tools.json
 ├── TodoApi/
