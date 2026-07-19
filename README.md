@@ -47,7 +47,8 @@ dotnet --version
 │       ├── 05-entity-framework-core.md
 │       ├── 06-dotnet-testing.md
 │       ├── 07-configuration.md
-│       └── 08-authentication-authorization.md
+│       ├── 08-authentication-authorization.md
+│       └── 09-api-errors.md
 ├── SampleDotnet.slnx
 ├── dotnet-tools.json
 ├── TodoApi/

@@ -6,7 +6,7 @@
 
 ## 現在の学習テーマ
 
-現在は「認証と認可を基礎から理解する」ステップです。
+現在は「APIのエラー処理を基礎から理解する」ステップです。
 
 これまでの実装で学んだこと:
 
@@ -214,6 +214,7 @@
 - `docs/learning/06-dotnet-testing.md`
 - `docs/learning/07-configuration.md`
 - `docs/learning/08-authentication-authorization.md`
+- `docs/learning/09-api-errors.md`
 
 現在のAPI入口は `TodoApi/Program.cs`、DB接続は `TodoApi/Data/TodoDbContext.cs`、Todo操作ロジックは `TodoApi/Services/TodoService.cs`、テストは `TodoApi.Tests/TodoApiTests.cs` にあります。
 
