@@ -315,6 +315,7 @@ app.MapGet("/todos", async (
     .WithDescription("Returns a paged list of todos with optional filtering and sorting.")
     .Produces<TodoListResponse>(StatusCodes.Status200OK)
     .Produces<ApiError>(StatusCodes.Status400BadRequest)
+    .Produces<Microsoft.AspNetCore.Mvc.ProblemDetails>(StatusCodes.Status500InternalServerError)
     .RequireRateLimiting("api");
 
 // GET /todos/1 のように、URLの一部からidを受け取ります。
@@ -334,6 +335,7 @@ app.MapGet("/todos/{id:int}", async (int id, TodoService todoService, Cancellati
     .WithDescription("Returns one todo by its numeric ID.")
     .Produces<TodoItem>(StatusCodes.Status200OK)
     .Produces(StatusCodes.Status404NotFound)
+    .Produces<Microsoft.AspNetCore.Mvc.ProblemDetails>(StatusCodes.Status500InternalServerError)
     .RequireRateLimiting("api");
 
 // POST /todos は、新しいTodoを作成します。
@@ -363,6 +365,7 @@ app.MapPost("/todos", async (
     .Produces<TodoItem>(StatusCodes.Status201Created)
     .Produces<ApiError>(StatusCodes.Status400BadRequest)
     .Produces(StatusCodes.Status401Unauthorized)
+    .Produces<Microsoft.AspNetCore.Mvc.ProblemDetails>(StatusCodes.Status500InternalServerError)
     .RequireAuthorization()
     .RequireRateLimiting("api");
 
@@ -398,6 +401,7 @@ app.MapPut("/todos/{id:int}", async (
     .Produces<ApiError>(StatusCodes.Status400BadRequest)
     .Produces(StatusCodes.Status401Unauthorized)
     .Produces(StatusCodes.Status404NotFound)
+    .Produces<Microsoft.AspNetCore.Mvc.ProblemDetails>(StatusCodes.Status500InternalServerError)
     .RequireAuthorization()
     .RequireRateLimiting("api");
 
@@ -425,6 +429,7 @@ app.MapDelete("/todos/{id:int}", async (
     .Produces(StatusCodes.Status204NoContent)
     .Produces(StatusCodes.Status401Unauthorized)
     .Produces(StatusCodes.Status404NotFound)
+    .Produces<Microsoft.AspNetCore.Mvc.ProblemDetails>(StatusCodes.Status500InternalServerError)
     .RequireAuthorization()
     .RequireRateLimiting("api");
 

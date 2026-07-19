@@ -145,6 +145,9 @@ DELETE /todos/{id}      -> X-API-Keyが必要
 
 仕様書の`security`項目を見ると、Swagger UIやクライアント生成ツールも認証要否を判断できます。
 
+予期しない例外は共通の`ProblemDetails`形式で返すため、各Todo操作の`500`レスポンスにも同じ型を登録しています。
+成功時だけでなく、失敗時のレスポンス契約もOpenAPIへ含めることが重要です。
+
 認証要否はHTTPメソッド名ではなく、`RequireAuthorization()`が追加した`IAuthorizeData`を確認します。
 これにより、将来エンドポイントのHTTPメソッドや認証ルールを変更しても、OpenAPI定義とのずれを減らせます。
 

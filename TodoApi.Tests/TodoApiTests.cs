@@ -44,6 +44,7 @@ public class TodoApiTests
         );
         Assert.NotNull(document["paths"]?["/todos"]?["post"]?["security"]);
         Assert.Null(document["paths"]?["/todos"]?["get"]?["security"]);
+        Assert.NotNull(document["paths"]?["/todos"]?["post"]?["responses"]?["500"]);
     }
 
     [Fact]
