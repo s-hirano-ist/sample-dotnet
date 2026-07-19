@@ -73,7 +73,10 @@ builder.Services.AddAuthorization(options =>
         policy
             .AddAuthenticationSchemes(ApiKeyAuthenticationDefaults.AuthenticationScheme)
             .RequireAuthenticatedUser()
-            .RequireClaim("permission", "todo:write");
+            .RequireClaim(
+                ApiKeyClaimDefaults.PermissionClaimType,
+                ApiKeyClaimDefaults.TodoWritePermission
+            );
     });
 });
 builder.Services.AddSingleton<IAuthorizationMiddlewareResultHandler, AuthorizationProblemDetailsHandler>();
