@@ -109,6 +109,23 @@ public class TodoApiTests
     }
 
     [Fact]
+    public async Task GetRoot_WithDisallowedOrigin_DoesNotReturnCorsHeader()
+    {
+        using var factory = new TodoApiTestFactory();
+        using var client = factory.CreateClient();
+
+        // 設定にないOriginからのブラウザリクエストを再現します。
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/");
+        request.Headers.Add("Origin", "https://untrusted.example");
+
+        var response = await client.SendAsync(request);
+
+        // API自体は応答しても、ブラウザから本文を読めるCORSヘッダーは返しません。
+        response.EnsureSuccessStatusCode();
+        Assert.DoesNotContain("Access-Control-Allow-Origin", response.Headers.Select(header => header.Key));
+    }
+
+    [Fact]
     public async Task PostTodo_WithoutApiKey_ReturnsUnauthorized()
     {
         using var factory = new TodoApiTestFactory();

@@ -62,6 +62,9 @@ Access-Control-Request-Headers: content-type, x-api-key
 APIは、許可しているOrigin・メソッド・ヘッダーをレスポンスで返します。
 ブラウザはその内容を確認してから、本来のPOSTを送信します。
 
+許可していないOriginの場合、APIがHTTPレスポンスを返すことと、ブラウザ上のJavaScriptが本文を読めることは別です。
+APIは`Access-Control-Allow-Origin`を返さないため、ブラウザはレスポンスをJavaScriptへ公開しません。
+
 ## 5. CORSポリシーの登録
 
 このAPIでは、`AddCors`でポリシーを登録しています。

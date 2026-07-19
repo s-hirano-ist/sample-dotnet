@@ -323,6 +323,7 @@
 - ブラウザが本来のリクエスト前に送る`OPTIONS`の意味
 - `Access-Control-Request-Method`と`Access-Control-Request-Headers`の役割
 - CORSレスポンスの許可Origin・メソッド・ヘッダーをテストする方法
+- 許可していないOriginにCORSヘッダーを返さないことを確認する方法
 
 基礎学習の資料:
 
@@ -458,6 +459,7 @@
 - レート制限設定をOptionsへ移し、値を検証する 完了
 - CORSのOrigin設定をOptionsへ移し、URL形式を検証する 完了
 - CORSプリフライトリクエストをテストする 完了
+- 許可していないOriginのCORSヘッダーをテストする 完了
 
 完了目安:
 
