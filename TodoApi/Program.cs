@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization.Policy;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.RateLimiting;
 using StackExchange.Redis;
@@ -72,6 +74,7 @@ builder.Services.AddAuthorization(options =>
             .RequireClaim("permission", "todo:write");
     });
 });
+builder.Services.AddSingleton<IAuthorizationMiddlewareResultHandler, AuthorizationProblemDetailsHandler>();
 
 // レート制限の設定をOptionsへ束ね、起動時に値を検証します。
 builder.Services
