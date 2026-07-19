@@ -10,7 +10,14 @@ using StackExchange.Redis;
 // args には、コマンドライン引数が入ります。今は特別な引数を使っていません。
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddSingleton<IValidateOptions<IdempotencyOptions>, IdempotencyOptionsValidator>();
+builder.Services
+    .AddOptions<IdempotencyOptions>()
+    .Bind(builder.Configuration.GetSection(ConfigurationDefaults.IdempotencySection))
+    .ValidateOnStart();
+
 // 冪等性キーの結果をAPIプロセス内で共有するため、Singletonとして登録します。
+builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton<TodoIdempotencyStore>();
 
 // CORSは、ブラウザから別のオリジンにあるAPIを呼び出すときの許可ルールです。
