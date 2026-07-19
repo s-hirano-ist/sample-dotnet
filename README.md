@@ -43,7 +43,8 @@ dotnet --version
 ├── .dockerignore
 ├── .github/
 │   └── workflows/
-│       └── ci.yml
+│       ├── ci.yml
+│       └── publish-image.yml
 ├── docs/
 │   └── learning/
 │       ├── 01-aspnet-core-parameters.md
@@ -102,7 +103,7 @@ APIの入口は `TodoApi/Program.cs`、DB接続は `TodoApi/Data/`、DB変更履
 
 ASP.NET Coreの引数処理を基礎から学ぶ資料は `docs/learning/` にあります。
 
-GitHub ActionsのCI設定は `.github/workflows/ci.yml` にあります。pushやPull Request時に、.NETテスト、コードカバレッジ収集、Compose設定、Dockerイメージビルドを自動検証します。カバレッジレポートはWorkflowのArtifactとして保存されます。
+GitHub ActionsのCI設定は `.github/workflows/ci.yml` にあります。pushやPull Request時に、.NETテスト、コードカバレッジ収集、Compose設定、Dockerイメージビルドを自動検証します。カバレッジレポートはWorkflowのArtifactとして保存されます。GHCRへのイメージ公開設定は `.github/workflows/publish-image.yml` にあり、GitHub Actions画面から手動実行します。
 
 テストは `TodoApi.Tests/TodoApiTests.cs` にあります。
 
