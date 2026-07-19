@@ -74,7 +74,12 @@ dotnet --version
 │       ├── 23-security-headers.md
 │       ├── 24-metrics.md
 │       ├── 25-etag-caching.md
-│       └── 26-optimistic-concurrency.md
+│       ├── 26-optimistic-concurrency.md
+│       ├── 27-pagination-links.md
+│       ├── 28-idempotency-key.md
+│       ├── 29-idempotency-expiration.md
+│       ├── 30-opentelemetry.md
+│       └── 31-redis-idempotency.md
 ├── SampleDotnet.slnx
 ├── dotnet-tools.json
 ├── TodoApi/
@@ -228,6 +233,10 @@ dotnet user-secrets set "ConnectionStrings:Redis" "localhost:6379" --project Tod
 ```
 
 Redisモードでは、Luaスクリプトでカウンター増加と有効期限設定をRedis内で一度に行います。Redisに接続できない場合は、レート制限を無効にせず`503 Service Unavailable`を返します。
+
+## Redisによる冪等性キー共有
+
+Composeでは`Idempotency:Store`もRedisに設定しています。複数コンテナで同じ`Idempotency-Key`を共有し、同一Todoの重複作成を防ぎます。最初のリクエストはRedisへ処理中として原子的に予約し、後続リクエストは完了結果を待ちます。Redisが利用できない場合にインメモリへフォールバックすることはありません。
 
 OpenAPI仕様書を確認:
 

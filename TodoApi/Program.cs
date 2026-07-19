@@ -27,7 +27,6 @@ builder.Services
 
 // 冪等性キーの結果をAPIプロセス内で共有するため、Singletonとして登録します。
 builder.Services.AddSingleton(TimeProvider.System);
-builder.Services.AddSingleton<TodoIdempotencyStore>();
 
 // CORSは、ブラウザから別のオリジンにあるAPIを呼び出すときの許可ルールです。
 // 許可するオリジンはコードに直接書かず、appsettings.jsonから読み込みます。
@@ -95,21 +94,23 @@ builder.Services
 
 // AddRateLimiterは、一定時間内のリクエスト数を制限する機能を登録します。
 // 過剰なアクセスや、意図しない大量リクエストからAPIを守るために使います。
+var idempotencyStore = builder.Configuration.GetValue<string>("Idempotency:Store") ?? "Memory";
+var useRedisIdempotency = string.Equals(idempotencyStore, "Redis", StringComparison.OrdinalIgnoreCase);
 var rateLimitStore = builder.Configuration.GetValue<string>("RateLimit:Store") ?? "Memory";
 var useRedisRateLimit = string.Equals(rateLimitStore, "Redis", StringComparison.OrdinalIgnoreCase);
 var rateLimitPermitLimit = builder.Configuration.GetValue<int>("RateLimit:PermitLimit", 10);
 var rateLimitWindowSeconds = builder.Configuration.GetValue<int>("RateLimit:WindowSeconds", 10);
+var useRedisDependency = useRedisRateLimit || useRedisIdempotency;
+var redisConnectionString = builder.Configuration.GetConnectionString(
+    ConfigurationDefaults.RedisConnection
+);
 
-if (useRedisRateLimit)
+if (useRedisDependency)
 {
-    var redisConnectionString = builder.Configuration.GetConnectionString(
-        ConfigurationDefaults.RedisConnection
-    );
-
     if (string.IsNullOrWhiteSpace(redisConnectionString))
     {
         throw new InvalidOperationException(
-            $"RateLimit:Store is Redis, but ConnectionStrings:{ConfigurationDefaults.RedisConnection} is not configured."
+            $"A Redis-backed feature is enabled, but ConnectionStrings:{ConfigurationDefaults.RedisConnection} is not configured."
         );
     }
 
@@ -118,7 +119,8 @@ if (useRedisRateLimit)
         ConnectionMultiplexer.Connect(redisConnectionString)
     );
 }
-else
+
+if (!useRedisRateLimit)
 {
     builder.Services.AddRateLimiter(options =>
     {
@@ -153,15 +155,24 @@ else
     });
 }
 
+if (useRedisIdempotency)
+{
+    builder.Services.AddSingleton<IIdempotencyStore, RedisTodoIdempotencyStore>();
+}
+else
+{
+    builder.Services.AddSingleton<IIdempotencyStore, TodoIdempotencyStore>();
+}
+
 // AddHealthChecksは、アプリが正常に動作できるか確認する機能を登録します。
 // AddDbContextCheckは、TodoDbContextを使ってSQLiteへ接続できるかも確認対象にします。
 var healthChecks = builder.Services
     .AddHealthChecks()
     .AddDbContextCheck<TodoDbContext>();
 
-if (useRedisRateLimit)
+if (useRedisDependency)
 {
-    // Redisモードでは、DBに加えてRedisも正常性チェックの対象にします。
+    // Redisを使う機能が有効なら、DBに加えてRedisも正常性チェックの対象にします。
     healthChecks.AddCheck<RedisHealthCheck>("redis");
 }
 
@@ -453,7 +464,7 @@ app.MapPost("/todos", async (
     CreateTodoRequest request,
     HttpContext httpContext,
     TodoService todoService,
-    TodoIdempotencyStore idempotencyStore,
+    IIdempotencyStore idempotencyStore,
     CancellationToken cancellationToken
 ) =>
 {
@@ -491,6 +502,16 @@ app.MapPost("/todos", async (
 
         if (result.Todo is null)
         {
+            if (result.IsInProgress)
+            {
+                return Results.Conflict(
+                    new ApiError(
+                        "idempotency_request_in_progress",
+                        "The original request is still in progress."
+                    )
+                );
+            }
+
             return Results.Conflict(
                 new ApiError(
                     "idempotency_key_reused",

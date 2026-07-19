@@ -4,7 +4,7 @@ using Microsoft.Extensions.Options;
 // TodoIdempotencyStoreは、同じクライアントが同じキーでPOSTを再送したとき、
 // 最初に作成したTodoを返して重複作成を防ぎます。
 // Singletonなので、現在は1つのAPIプロセス内でだけ有効です。
-public sealed class TodoIdempotencyStore
+public sealed class TodoIdempotencyStore : IIdempotencyStore
 {
     private readonly ConcurrentDictionary<string, Entry> _entries = new();
     private readonly IdempotencyOptions _options;
@@ -96,7 +96,12 @@ public sealed class TodoIdempotencyStore
     );
 }
 
-public sealed record IdempotencyExecutionResult(TodoItem? Todo, bool IsReplay)
+public sealed record IdempotencyExecutionResult(
+    TodoItem? Todo,
+    bool IsReplay,
+    bool IsInProgress = false
+)
 {
     public static IdempotencyExecutionResult Conflict => new(null, false);
+    public static IdempotencyExecutionResult InProgress => new(null, false, true);
 }

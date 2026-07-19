@@ -23,6 +23,9 @@ services:
       RateLimit__Store: Redis
       RateLimit__PermitLimit: 10
       RateLimit__WindowSeconds: 10
+      Idempotency__Store: Redis
+      Idempotency__EntryLifetimeSeconds: 300
+      Idempotency__WaitTimeoutSeconds: 5
     volumes:
       - todo-data:/data
       - data-protection-keys:/home/app/.aspnet/DataProtection-Keys
