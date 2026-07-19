@@ -2,7 +2,7 @@ using System.Text.Json;
 
 // ExceptionHandlingMiddlewareは、処理中に予期しない例外が発生したときの
 // HTTPレスポンスを共通化します。
-public class ExceptionHandlingMiddleware
+public partial class ExceptionHandlingMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<ExceptionHandlingMiddleware> _logger;
@@ -24,13 +24,13 @@ public class ExceptionHandlingMiddleware
         {
             // クライアント切断によるキャンセルは、サーバー内部エラーではありません。
             // ASP.NET Coreへ返して、切断済みのレスポンスを書き込まないようにします。
-            _logger.LogDebug("The request was canceled by the client.");
+            LogRequestCanceled();
             throw;
         }
         catch (Exception exception)
         {
             // 詳細な例外情報はログにだけ残し、クライアントには返しません。
-            _logger.LogError(exception, "Unhandled exception while processing the request.");
+            LogUnhandledException(exception);
 
             // すでにレスポンスの送信が始まっている場合、JSONへ変更できません。
             if (context.Response.HasStarted)
@@ -59,4 +59,18 @@ public class ExceptionHandlingMiddleware
             await JsonSerializer.SerializeAsync(context.Response.Body, problemDetails, JsonSerializerOptions.Web);
         }
     }
+
+    [LoggerMessage(
+        EventId = 1003,
+        Level = LogLevel.Error,
+        Message = "Unhandled exception while processing the request."
+    )]
+    private partial void LogUnhandledException(Exception exception);
+
+    [LoggerMessage(
+        EventId = 1004,
+        Level = LogLevel.Debug,
+        Message = "The request was canceled by the client."
+    )]
+    private partial void LogRequestCanceled();
 }
