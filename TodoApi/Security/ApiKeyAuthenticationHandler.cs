@@ -52,7 +52,8 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<AuthenticationS
         // 認証に成功したユーザーを表すClaimsPrincipalを作ります。
         var claims = new[]
         {
-            new Claim(ClaimTypes.Name, "api-client")
+            new Claim(ClaimTypes.Name, "api-client"),
+            new Claim("permission", "todo:write")
         };
         var identity = new ClaimsIdentity(claims, Scheme.Name);
         var principal = new ClaimsPrincipal(identity);

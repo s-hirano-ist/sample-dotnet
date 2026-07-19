@@ -85,11 +85,16 @@ options.AddPolicy("TodoWrite", policy =>
 {
     policy
         .AddAuthenticationSchemes("ApiKey")
-        .RequireAuthenticatedUser();
+        .RequireAuthenticatedUser()
+        .RequireClaim("permission", "todo:write");
 });
 ```
 
 名前付きポリシーにすると、将来「APIキーに加えて特定の権限も必要」といった条件を一か所へ追加できます。
+
+`RequireAuthenticatedUser`は「認証済みであること」を確認します。
+`RequireClaim`は「認証済みの利用者が必要な権限を持っていること」を確認します。
+この2つを分けることで、認証と認可の役割を明確にできます。
 
 現在のAPIでは次の操作を保護しています。
 

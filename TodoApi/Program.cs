@@ -68,7 +68,8 @@ builder.Services.AddAuthorization(options =>
     {
         policy
             .AddAuthenticationSchemes(ApiKeyAuthenticationDefaults.AuthenticationScheme)
-            .RequireAuthenticatedUser();
+            .RequireAuthenticatedUser()
+            .RequireClaim("permission", "todo:write");
     });
 });
 
