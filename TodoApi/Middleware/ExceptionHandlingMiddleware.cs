@@ -36,6 +36,7 @@ public class ExceptionHandlingMiddleware
             context.Response.Clear();
             context.Response.StatusCode = StatusCodes.Status500InternalServerError;
             context.Response.ContentType = "application/problem+json";
+            context.Response.Headers["X-Request-Id"] = requestId;
 
             // ProblemDetailsは、HTTP APIのエラーを共通形式で表すためのJSONです。
             // RequestIdを含めると、利用者がログの該当行を運用担当者へ伝えられます。

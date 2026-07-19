@@ -35,4 +35,33 @@ public class ExceptionHandlingMiddlewareTests
         // 例外のメッセージは、クライアントへ漏れていないことを確認します。
         Assert.DoesNotContain("secret database detail", body.ToJsonString());
     }
+
+    [Fact]
+    public async Task RequestIdMiddlewareBeforeExceptionMiddleware_PreservesRequestIdOnError()
+    {
+        var context = new DefaultHttpContext();
+        context.Request.Path = "/todos";
+        context.Response.Body = new MemoryStream();
+
+        RequestDelegate endpoint = _ => throw new InvalidOperationException("unexpected failure");
+        var exceptionMiddleware = new ExceptionHandlingMiddleware(
+            endpoint,
+            NullLogger<ExceptionHandlingMiddleware>.Instance
+        );
+        var requestIdMiddleware = new RequestIdMiddleware(
+            exceptionMiddleware.InvokeAsync,
+            NullLogger<RequestIdMiddleware>.Instance
+        );
+
+        // Request ID Middlewareが外側にある構成を再現します。
+        await requestIdMiddleware.InvokeAsync(context);
+
+        context.Response.Body.Position = 0;
+        var body = await JsonNode.ParseAsync(context.Response.Body);
+        Assert.NotNull(body);
+        Assert.Equal(
+            context.Response.Headers["X-Request-Id"].ToString(),
+            body["requestId"]?.GetValue<string>()
+        );
+    }
 }

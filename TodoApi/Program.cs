@@ -122,12 +122,12 @@ builder.Services.AddScoped<TodoService>();
 // Build を呼ぶと、実際に起動できるWebアプリケーションの本体が作られます。
 var app = builder.Build();
 
-// 予期しない例外を共通のJSONレスポンスへ変換します。
-// 最初に置くことで、後続のミドルウェアやエンドポイントの例外をまとめて扱えます。
-app.UseMiddleware<ExceptionHandlingMiddleware>();
-
 // すべてのリクエストにRequest IDを付けるため、早い段階でミドルウェアを実行します。
 app.UseMiddleware<RequestIdMiddleware>();
+
+// Request IDのスコープ内で例外を記録するため、RequestIdの後に実行します。
+// 後続のミドルウェアやエンドポイントの例外を共通のJSONレスポンスへ変換します。
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 // HTTPの結果と処理時間を記録するため、Request IDの後に実行します。
 app.UseMiddleware<RequestLoggingMiddleware>();
