@@ -45,6 +45,20 @@ builder.Services
 // AddAuthorizationは、認証済みかどうかによってエンドポイントへのアクセスを制御します。
 builder.Services.AddAuthorization();
 
+// レート制限の設定をOptionsへ束ね、起動時に値を検証します。
+builder.Services
+    .AddOptions<RateLimitOptions>()
+    .Bind(builder.Configuration.GetSection("RateLimit"))
+    .Validate(
+        options =>
+            (string.Equals(options.Store, "Memory", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(options.Store, "Redis", StringComparison.OrdinalIgnoreCase))
+            && options.PermitLimit > 0
+            && options.WindowSeconds > 0,
+        "RateLimit:Store must be Memory or Redis, and limits must be greater than zero."
+    )
+    .ValidateOnStart();
+
 // AddRateLimiterは、一定時間内のリクエスト数を制限する機能を登録します。
 // 過剰なアクセスや、意図しない大量リクエストからAPIを守るために使います。
 var rateLimitStore = builder.Configuration.GetValue<string>("RateLimit:Store") ?? "Memory";

@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using Microsoft.Extensions.Options;
 using StackExchange.Redis;
 
 // DistributedRateLimitMiddlewareは、Redisを共有カウンターとして使うレート制限です。
@@ -16,26 +17,26 @@ public class DistributedRateLimitMiddleware
 
     private readonly RequestDelegate _next;
     private readonly IConnectionMultiplexer _redis;
-    private readonly IConfiguration _configuration;
+    private readonly RateLimitOptions _rateLimitOptions;
     private readonly ILogger<DistributedRateLimitMiddleware> _logger;
 
     public DistributedRateLimitMiddleware(
         RequestDelegate next,
         IConnectionMultiplexer redis,
-        IConfiguration configuration,
+        IOptions<RateLimitOptions> rateLimitOptions,
         ILogger<DistributedRateLimitMiddleware> logger
     )
     {
         _next = next;
         _redis = redis;
-        _configuration = configuration;
+        _rateLimitOptions = rateLimitOptions.Value;
         _logger = logger;
     }
 
     public async Task InvokeAsync(HttpContext context)
     {
-        var permitLimit = _configuration.GetValue<int>("RateLimit:PermitLimit", 10);
-        var windowSeconds = _configuration.GetValue<int>("RateLimit:WindowSeconds", 10);
+        var permitLimit = _rateLimitOptions.PermitLimit;
+        var windowSeconds = _rateLimitOptions.WindowSeconds;
         var partitionKey = GetPartitionKey(context);
         var redisKey = $"todo-api:rate-limit:{Hash(partitionKey)}";
 

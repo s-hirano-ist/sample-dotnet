@@ -53,3 +53,19 @@ Optionsへ変換
 - `Bind`と`Validate`はそれぞれ何をしているか
 - `ValidateOnStart`がない場合、検証はいつ行われるか
 - 本番環境のAPIキーをどこから注入するべきか
+
+## 5. レート制限設定も型へ束ねる
+
+APIキー以外の設定も、Optionsへまとめて検証できます。
+
+```csharp
+public sealed class RateLimitOptions
+{
+    public string Store { get; set; } = "Memory";
+    public int PermitLimit { get; set; } = 10;
+    public int WindowSeconds { get; set; } = 10;
+}
+```
+
+このAPIでは、`Store`が`Memory`または`Redis`であること、許可数と時間枠が1以上であることを起動時に確認します。
+設定値を使うミドルウェアは、`IOptions<RateLimitOptions>`をDIから受け取ります。

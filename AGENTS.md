@@ -314,6 +314,8 @@
 - `Bind`で設定セクションを型へ変換する流れ
 - `Validate`と`ValidateOnStart`で起動時に設定ミスを検出する方法
 - 認証ハンドラーがDIからOptionsを受け取る仕組み
+- 複数の設定項目をOptionsへまとめて検証する方法
+- レート制限ミドルウェアが`IOptions<RateLimitOptions>`を受け取る流れ
 
 基礎学習の資料:
 
@@ -446,6 +448,7 @@
 - Dependabotで依存関係を定期確認する 完了
 - Liveness用の`/live`とReadiness用の`/ready`を追加する 完了
 - APIキー設定をOptionsへ移し、起動時検証を追加する 完了
+- レート制限設定をOptionsへ移し、値を検証する 完了
 
 完了目安:
 
