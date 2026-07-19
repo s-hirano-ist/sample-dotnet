@@ -6,7 +6,7 @@
 
 ## 現在の学習テーマ
 
-現在は「Entity Framework Coreを基礎から理解する」ステップです。
+現在は「.NETのテストを基礎から理解する」ステップです。
 
 これまでの実装で学んだこと:
 
@@ -211,6 +211,7 @@
 - `docs/learning/03-middleware-pipeline.md`
 - `docs/learning/04-async-await.md`
 - `docs/learning/05-entity-framework-core.md`
+- `docs/learning/06-dotnet-testing.md`
 
 現在のAPI入口は `TodoApi/Program.cs`、DB接続は `TodoApi/Data/TodoDbContext.cs`、Todo操作ロジックは `TodoApi/Services/TodoService.cs`、テストは `TodoApi.Tests/TodoApiTests.cs` にあります。
 
