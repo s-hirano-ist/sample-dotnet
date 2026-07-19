@@ -57,7 +57,8 @@ dotnet --version
 │       ├── 12-cors.md
 │       ├── 13-health-checks.md
 │       ├── 14-rate-limiting.md
-│       └── 15-container-deployment.md
+│       ├── 15-container-deployment.md
+│       └── 16-distroless-images.md
 ├── SampleDotnet.slnx
 ├── dotnet-tools.json
 ├── TodoApi/

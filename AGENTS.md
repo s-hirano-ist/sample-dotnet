@@ -6,7 +6,7 @@
 
 ## 現在の学習テーマ
 
-現在は「Docker ComposeでAPIを起動する」ステップです。
+現在は「Distrolessコンテナの適用条件を理解する」ステップです。
 
 これまでの実装で学んだこと:
 
@@ -205,6 +205,14 @@
 - SQLiteのデータをNamed Volumeへ保存する考え方
 - コンテナのhealthcheckと`depends_on`の関係
 
+今回のDistrolessで学ぶこと:
+
+- SDKイメージと実行イメージを分ける理由
+- Distrolessイメージの特徴と制約
+- コンテナ内ツールに依存しないヘルスチェック設計
+- 非rootユーザーとボリューム権限の関係
+- Globalization依存とイメージ選択
+
 今回の基礎復習で学ぶこと:
 
 - 普通のC#メソッドで引数を渡す方法
@@ -312,6 +320,7 @@
 - Todo一覧のソートを追加する 完了
 - DB処理へCancellationTokenを伝播する 完了
 - Docker ComposeでAPIとRedisを起動できるようにする 完了
+- Distroless実行イメージの適用条件を整理する 完了
 
 完了目安:
 
