@@ -12,22 +12,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 // CORSは、ブラウザから別のオリジンにあるAPIを呼び出すときの許可ルールです。
 // 許可するオリジンはコードに直接書かず、appsettings.jsonから読み込みます。
+builder.Services.AddSingleton<IValidateOptions<CorsOptions>, CorsOptionsValidator>();
 builder.Services
     .AddOptions<CorsOptions>()
     .Bind(builder.Configuration.GetSection("Cors"))
-    .Validate(
-        options =>
-            options.AllowedOrigins.Length > 0
-            && options.AllowedOrigins.All(origin =>
-                Uri.TryCreate(origin, UriKind.Absolute, out var uri)
-                && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps)
-            ),
-        "Cors:AllowedOrigins must contain at least one absolute HTTP or HTTPS origin."
-    )
-    .Validate(
-        options => options.AllowedMethods.Length > 0 && options.AllowedHeaders.Length > 0,
-        "Cors:AllowedMethods and Cors:AllowedHeaders must not be empty."
-    )
     .ValidateOnStart();
 
 // CORSの設定をOptionsと同じ型へ読み込み、ポリシー作成に使います。
@@ -78,17 +66,10 @@ builder.Services.AddAuthorization(options =>
 builder.Services.AddSingleton<IAuthorizationMiddlewareResultHandler, AuthorizationProblemDetailsHandler>();
 
 // レート制限の設定をOptionsへ束ね、起動時に値を検証します。
+builder.Services.AddSingleton<IValidateOptions<RateLimitOptions>, RateLimitOptionsValidator>();
 builder.Services
     .AddOptions<RateLimitOptions>()
     .Bind(builder.Configuration.GetSection("RateLimit"))
-    .Validate(
-        options =>
-            (string.Equals(options.Store, "Memory", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(options.Store, "Redis", StringComparison.OrdinalIgnoreCase))
-            && options.PermitLimit > 0
-            && options.WindowSeconds > 0,
-        "RateLimit:Store must be Memory or Redis, and limits must be greater than zero."
-    )
     .ValidateOnStart();
 
 // AddRateLimiterは、一定時間内のリクエスト数を制限する機能を登録します。
