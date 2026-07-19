@@ -738,6 +738,22 @@ public class TodoApiTests
     }
 
     [Fact]
+    public async Task HeadTodo_WhenTodoExists_ReturnsEtagWithoutBody()
+    {
+        using var factory = new TodoApiTestFactory();
+        using var client = factory.CreateClient();
+
+        var createResponse = await client.PostAsJsonAsync("/todos", new { title = "Head request" });
+        createResponse.EnsureSuccessStatusCode();
+
+        var response = await client.SendAsync(new HttpRequestMessage(HttpMethod.Head, "/todos/1"));
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.False(string.IsNullOrWhiteSpace(response.Headers.ETag?.ToString()));
+        Assert.Empty(await response.Content.ReadAsByteArrayAsync());
+    }
+
+    [Fact]
     public async Task PutTodo_WithValidRequest_UpdatesTodo()
     {
         using var factory = new TodoApiTestFactory();

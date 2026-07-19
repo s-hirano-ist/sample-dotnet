@@ -364,6 +364,32 @@ app.MapGet("/todos/{id:int}", async (
     .Produces<Microsoft.AspNetCore.Mvc.ProblemDetails>(StatusCodes.Status500InternalServerError)
     .RequireRateLimiting(ApiPolicyDefaults.RateLimitPolicy);
 
+// HEAD /todos/1 は、本文なしでTodoの存在とETagだけを確認します。
+app.MapMethods("/todos/{id:int}", new[] { "HEAD" }, async (
+    int id,
+    HttpContext httpContext,
+    TodoService todoService,
+    CancellationToken cancellationToken
+) =>
+{
+    var todo = await todoService.GetByIdAsync(id, cancellationToken);
+
+    if (todo is null)
+    {
+        return Results.NotFound();
+    }
+
+    httpContext.Response.Headers.ETag = TodoEtag.Create(todo);
+    return Results.Ok();
+})
+    .WithName("HeadTodo")
+    .WithSummary("Check a todo")
+    .WithDescription("Checks whether a todo exists without returning its body.")
+    .Produces(StatusCodes.Status200OK)
+    .Produces(StatusCodes.Status404NotFound)
+    .Produces<Microsoft.AspNetCore.Mvc.ProblemDetails>(StatusCodes.Status500InternalServerError)
+    .RequireRateLimiting(ApiPolicyDefaults.RateLimitPolicy);
+
 // POST /todos は、新しいTodoを作成します。
 // リクエストボディのJSONは、CreateTodoRequest型として受け取れます。
 app.MapPost("/todos", async (
