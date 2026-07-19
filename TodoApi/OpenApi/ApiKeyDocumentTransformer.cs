@@ -14,10 +14,11 @@ public sealed class ApiKeyDocumentTransformer : IOpenApiDocumentTransformer
         document.Components ??= new OpenApiComponents();
         document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
 
-        document.Components.SecuritySchemes["ApiKey"] = new OpenApiSecurityScheme
+        document.Components.SecuritySchemes[ApiKeyAuthenticationDefaults.AuthenticationScheme] =
+            new OpenApiSecurityScheme
         {
             Type = SecuritySchemeType.ApiKey,
-            Name = "X-API-Key",
+            Name = ApiKeyAuthenticationDefaults.HeaderName,
             In = ParameterLocation.Header,
             Description = "API key used for protected Todo operations."
         };

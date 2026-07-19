@@ -25,7 +25,7 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<AuthenticationS
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
         // HTTPヘッダーからクライアントが送ったAPIキーを取得します。
-        if (!Request.Headers.TryGetValue("X-API-Key", out var providedApiKey))
+        if (!Request.Headers.TryGetValue(ApiKeyAuthenticationDefaults.HeaderName, out var providedApiKey))
         {
             // キーがない場合は「認証情報がない」として扱います。
             return Task.FromResult(AuthenticateResult.NoResult());

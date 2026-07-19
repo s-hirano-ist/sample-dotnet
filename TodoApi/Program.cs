@@ -54,8 +54,11 @@ builder.Services
     .ValidateOnStart();
 
 builder.Services
-    .AddAuthentication("ApiKey")
-    .AddScheme<AuthenticationSchemeOptions, ApiKeyAuthenticationHandler>("ApiKey", _ => { });
+    .AddAuthentication(ApiKeyAuthenticationDefaults.AuthenticationScheme)
+    .AddScheme<AuthenticationSchemeOptions, ApiKeyAuthenticationHandler>(
+        ApiKeyAuthenticationDefaults.AuthenticationScheme,
+        _ => { }
+    );
 
 // AddAuthorizationは、認証済みかどうかによってエンドポイントへのアクセスを制御します。
 builder.Services.AddAuthorization();

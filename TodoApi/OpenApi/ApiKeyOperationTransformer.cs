@@ -24,7 +24,11 @@ public sealed class ApiKeyOperationTransformer : IOpenApiOperationTransformer
             operation.Security.Add(
                 new OpenApiSecurityRequirement
                 {
-                    [new OpenApiSecuritySchemeReference("ApiKey")] = []
+                    [
+                        new OpenApiSecuritySchemeReference(
+                            ApiKeyAuthenticationDefaults.AuthenticationScheme
+                        )
+                    ] = []
                 }
             );
         }
