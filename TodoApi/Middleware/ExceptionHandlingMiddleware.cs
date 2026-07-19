@@ -20,6 +20,13 @@ public class ExceptionHandlingMiddleware
             // 次のミドルウェアやエンドポイントを実行します。
             await _next(context);
         }
+        catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested)
+        {
+            // クライアント切断によるキャンセルは、サーバー内部エラーではありません。
+            // ASP.NET Coreへ返して、切断済みのレスポンスを書き込まないようにします。
+            _logger.LogDebug("The request was canceled by the client.");
+            throw;
+        }
         catch (Exception exception)
         {
             // 詳細な例外情報はログにだけ残し、クライアントには返しません。

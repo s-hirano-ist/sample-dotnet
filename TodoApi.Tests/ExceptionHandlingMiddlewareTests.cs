@@ -64,4 +64,30 @@ public class ExceptionHandlingMiddlewareTests
             body["requestId"]?.GetValue<string>()
         );
     }
+
+    [Fact]
+    public async Task InvokeAsync_WhenRequestIsCanceled_RethrowsCancellation()
+    {
+        using var cancellationSource = new CancellationTokenSource();
+        cancellationSource.Cancel();
+
+        var context = new DefaultHttpContext
+        {
+            RequestAborted = cancellationSource.Token
+        };
+        context.Response.Body = new MemoryStream();
+
+        RequestDelegate next = _ =>
+            throw new OperationCanceledException(cancellationSource.Token);
+        var middleware = new ExceptionHandlingMiddleware(
+            next,
+            NullLogger<ExceptionHandlingMiddleware>.Instance
+        );
+
+        // クライアント切断は500へ変換せず、キャンセルとして上位へ伝播させます。
+        await Assert.ThrowsAsync<OperationCanceledException>(
+            () => middleware.InvokeAsync(context)
+        );
+        Assert.NotEqual(StatusCodes.Status500InternalServerError, context.Response.StatusCode);
+    }
 }
