@@ -61,7 +61,9 @@ dotnet --version
 │       ├── 13-health-checks.md
 │       ├── 14-rate-limiting.md
 │       ├── 15-container-deployment.md
-│       └── 16-distroless-images.md
+│       ├── 16-distroless-images.md
+│       ├── 17-ci.md
+│       └── 18-code-coverage.md
 ├── SampleDotnet.slnx
 ├── dotnet-tools.json
 ├── TodoApi/
@@ -100,7 +102,7 @@ APIの入口は `TodoApi/Program.cs`、DB接続は `TodoApi/Data/`、DB変更履
 
 ASP.NET Coreの引数処理を基礎から学ぶ資料は `docs/learning/` にあります。
 
-GitHub ActionsのCI設定は `.github/workflows/ci.yml` にあります。pushやPull Request時に、.NETテスト、Compose設定、Dockerイメージビルドを自動検証します。
+GitHub ActionsのCI設定は `.github/workflows/ci.yml` にあります。pushやPull Request時に、.NETテスト、コードカバレッジ収集、Compose設定、Dockerイメージビルドを自動検証します。カバレッジレポートはWorkflowのArtifactとして保存されます。
 
 テストは `TodoApi.Tests/TodoApiTests.cs` にあります。
 

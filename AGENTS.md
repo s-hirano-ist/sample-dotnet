@@ -6,7 +6,7 @@
 
 ## 現在の学習テーマ
 
-現在は「CIでテストとコンテナビルドを自動検証する」ステップです。
+現在は「CIでテストカバレッジを収集する」ステップです。
 
 これまでの実装で学んだこと:
 
@@ -230,6 +230,17 @@
 - Dockerイメージをpushせずにビルド検証する方法
 - `needs`でJobの実行順を制御する方法
 
+今回のコードカバレッジで学ぶこと:
+
+- Line、Branch、Method coverageの違い
+- `coverlet.collector`でカバレッジを収集する方法
+- GitHub ActionsのArtifactへ結果を保存する方法
+- カバレッジ率とテスト品質を混同しない考え方
+
+基礎学習の資料:
+
+- `docs/learning/18-code-coverage.md`
+
 今回の基礎復習で学ぶこと:
 
 - 普通のC#メソッドで引数を渡す方法
@@ -255,6 +266,9 @@
 - `docs/learning/13-health-checks.md`
 - `docs/learning/14-rate-limiting.md`
 - `docs/learning/15-container-deployment.md`
+- `docs/learning/16-distroless-images.md`
+- `docs/learning/17-ci.md`
+- `docs/learning/18-code-coverage.md`
 
 現在のAPI入口は `TodoApi/Program.cs`、DB接続は `TodoApi/Data/TodoDbContext.cs`、Todo操作ロジックは `TodoApi/Services/TodoService.cs`、テストは `TodoApi.Tests/TodoApiTests.cs` にあります。
 

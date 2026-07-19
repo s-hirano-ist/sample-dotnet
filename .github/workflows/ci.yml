@@ -28,7 +28,15 @@ jobs:
         run: dotnet restore
 
       - name: Test
-        run: dotnet test --configuration Release --no-restore
+        run: dotnet test --configuration Release --no-restore --results-directory TestResults --collect:"XPlat Code Coverage"
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-coverage
+          path: "**/TestResults/**/coverage.cobertura.xml"
+          if-no-files-found: error
 
   compose-config:
     name: Validate Compose
