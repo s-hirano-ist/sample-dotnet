@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Policy;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using System.Threading.RateLimiting;
 using StackExchange.Redis;
 
@@ -46,42 +47,10 @@ builder.Services.AddCors(options =>
 
 // AddAuthenticationは、リクエストの認証方法を登録します。
 // 今回はX-API-Keyを確認する独自の認証ハンドラーを使います。
+builder.Services.AddSingleton<IValidateOptions<ApiKeyOptions>, ApiKeyOptionsValidator>();
 builder.Services
     .AddOptions<ApiKeyOptions>()
     .Bind(builder.Configuration.GetSection("Authentication"))
-    .Validate(
-        options =>
-            (
-                !string.IsNullOrWhiteSpace(options.ApiKey)
-                && options.Permissions.Length > 0
-            )
-            || options.Clients.Any(client =>
-                !string.IsNullOrWhiteSpace(client.Key)
-                && client.Permissions.Length > 0
-            ),
-        "Authentication must configure a legacy API key or at least one client."
-    )
-    .Validate(
-        options => options.Clients.All(client =>
-            !string.IsNullOrWhiteSpace(client.Name)
-            && !string.IsNullOrWhiteSpace(client.Key)
-            && client.Permissions.Length > 0
-        ),
-        "Each Authentication client must have a name, key, and permission."
-    )
-    .Validate(
-        options =>
-        {
-            var keys = new[] { options.ApiKey }
-                .Concat(options.AdditionalApiKeys)
-                .Concat(options.Clients.Select(client => client.Key))
-                .Where(key => !string.IsNullOrWhiteSpace(key))
-                .ToArray();
-
-            return keys.Distinct(StringComparer.Ordinal).Count() == keys.Length;
-        },
-        "Authentication API keys must be unique."
-    )
     .ValidateOnStart();
 
 builder.Services
