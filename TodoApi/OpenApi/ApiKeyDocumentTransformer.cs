@@ -14,6 +14,13 @@ public sealed class ApiKeyDocumentTransformer : IOpenApiDocumentTransformer
         document.Components ??= new OpenApiComponents();
         document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
 
+        document.Info = new OpenApiInfo
+        {
+            Title = "Todo API",
+            Version = "1.0",
+            Description = "A Todo REST API for the .NET hands-on project."
+        };
+
         document.Components.SecuritySchemes[ApiKeyAuthenticationDefaults.AuthenticationScheme] =
             new OpenApiSecurityScheme
         {
