@@ -413,10 +413,7 @@ app.MapPut("/todos/{id:int}", async (
     }
 
     var currentEtag = TodoEtag.Create(currentTodo);
-    if (
-        httpContext.Request.Headers.TryGetValue("If-Match", out var ifMatch)
-        && !ifMatch.Any(value => value?.Trim() == currentEtag)
-    )
+    if (!TodoConcurrency.MatchesIfMatch(httpContext.Request, currentEtag))
     {
         return Results.Problem(
             type: "https://httpstatuses.com/412",
@@ -470,10 +467,7 @@ app.MapDelete("/todos/{id:int}", async (
     }
 
     var currentEtag = TodoEtag.Create(currentTodo);
-    if (
-        httpContext.Request.Headers.TryGetValue("If-Match", out var ifMatch)
-        && !ifMatch.Any(value => value?.Trim() == currentEtag)
-    )
+    if (!TodoConcurrency.MatchesIfMatch(httpContext.Request, currentEtag))
     {
         return Results.Problem(
             type: "https://httpstatuses.com/412",
