@@ -43,7 +43,8 @@ dotnet --version
 │       ├── 01-aspnet-core-parameters.md
 │       ├── 02-dependency-injection.md
 │       ├── 03-middleware-pipeline.md
-│       └── 04-async-await.md
+│       ├── 04-async-await.md
+│       └── 05-entity-framework-core.md
 ├── SampleDotnet.slnx
 ├── dotnet-tools.json
 ├── TodoApi/
