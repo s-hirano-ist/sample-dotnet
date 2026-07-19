@@ -173,6 +173,10 @@ public class TodoApiTests
             factory.LoggerProvider.Messages,
             message => message.Contains("API key authentication failed for path /todos")
         );
+        Assert.Contains(
+            factory.LoggerProvider.Events,
+            eventId => eventId == ApiLogEvents.InvalidApiKey
+        );
         Assert.DoesNotContain(
             factory.LoggerProvider.Messages,
             message => message.Contains("wrong-api-key")

@@ -78,6 +78,7 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<AuthenticationS
         {
             // APIキーの値は記録せず、失敗したパスだけを監査ログへ残します。
             Logger.LogWarning(
+                ApiLogEvents.InvalidApiKey,
                 "API key authentication failed for path {Path}.",
                 Request.Path
             );
