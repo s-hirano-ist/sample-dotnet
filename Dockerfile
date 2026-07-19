@@ -25,8 +25,15 @@ RUN apt-get update \
 
 COPY --from=build /app/publish .
 
+# SQLiteとData Protectionキーを書き込めるディレクトリを、実行ユーザー用に準備します。
+RUN mkdir --parents /data /home/app/.aspnet/DataProtection-Keys \
+    && chown --recursive $APP_UID:$APP_UID /data /home/app
+
 # コンテナ内のHTTP待ち受けポートです。
 ENV ASPNETCORE_HTTP_PORTS=8080
 EXPOSE 8080
+
+# root権限を持たないユーザーでアプリケーションを実行します。
+USER $APP_UID
 
 ENTRYPOINT ["dotnet", "TodoApi.dll"]

@@ -1,4 +1,13 @@
 services:
+  todo-api-permissions:
+    image: sample-dotnet-todo-api
+    user: "0"
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["chown -R 1654:1654 /data /keys"]
+    volumes:
+      - todo-data:/data
+      - data-protection-keys:/keys
+
   todo-api:
     build:
       context: .
@@ -16,10 +25,12 @@ services:
       RateLimit__WindowSeconds: 10
     volumes:
       - todo-data:/data
-      - data-protection-keys:/root/.aspnet/DataProtection-Keys
+      - data-protection-keys:/home/app/.aspnet/DataProtection-Keys
     depends_on:
       redis:
         condition: service_healthy
+      todo-api-permissions:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
       interval: 10s

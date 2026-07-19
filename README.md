@@ -145,6 +145,8 @@ http://localhost:8080
 
 ComposeではAPIとRedisを起動します。レート制限はRedisモードになり、SQLiteの`todo.db`は`todo-data`というNamed Volumeへ保存されます。ASP.NET CoreのData Protectionキーも`data-protection-keys`へ保存し、コンテナ再作成時に毎回変わらないようにしています。
 
+APIコンテナはroot権限を持たない`APP_UID`ユーザーで実行します。起動時に権限初期化用の一時コンテナがボリュームの所有者を整え、SQLiteとData Protectionキーへ書き込めるようにしています。
+
 APIキーはデフォルトで`compose-dev-api-key`ですが、起動前に環境変数で変更できます。
 
 ```bash
