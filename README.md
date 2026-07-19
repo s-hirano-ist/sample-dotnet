@@ -71,7 +71,8 @@ dotnet --version
 │       ├── 20-ecs-fargate.md
 │       ├── 21-security-scanning.md
 │       ├── 22-options-validation.md
-│       └── 23-security-headers.md
+│       ├── 23-security-headers.md
+│       └── 24-metrics.md
 ├── SampleDotnet.slnx
 ├── dotnet-tools.json
 ├── TodoApi/

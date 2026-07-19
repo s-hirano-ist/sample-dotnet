@@ -166,6 +166,8 @@ builder.Services.AddDbContext<TodoDbContext>(options =>
 // TodoServiceは、Todoの作成・取得・更新・削除の処理をまとめたサービスです。
 // AddScoped は、HTTPリクエストごとに1つのインスタンスを作る登録方法です。
 builder.Services.AddScoped<TodoService>();
+// ApiMetricsは、HTTPリクエストの件数と処理時間を記録するSingletonです。
+builder.Services.AddSingleton<ApiMetrics>();
 
 // Build を呼ぶと、実際に起動できるWebアプリケーションの本体が作られます。
 var app = builder.Build();

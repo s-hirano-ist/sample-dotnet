@@ -6,14 +6,17 @@ public partial class RequestLoggingMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<RequestLoggingMiddleware> _logger;
+    private readonly ApiMetrics _metrics;
 
     public RequestLoggingMiddleware(
         RequestDelegate next,
-        ILogger<RequestLoggingMiddleware> logger
+        ILogger<RequestLoggingMiddleware> logger,
+        ApiMetrics metrics
     )
     {
         _next = next;
         _logger = logger;
+        _metrics = metrics;
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -27,6 +30,12 @@ public partial class RequestLoggingMiddleware
         finally
         {
             stopwatch.Stop();
+
+            _metrics.RecordRequest(
+                context.Request.Method,
+                context.Response.StatusCode,
+                stopwatch.Elapsed.TotalMilliseconds
+            );
 
             // リクエスト本文や認証ヘッダーは記録せず、調査に必要な情報だけを残します。
             LogRequestCompleted(
