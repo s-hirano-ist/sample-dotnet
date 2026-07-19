@@ -60,6 +60,7 @@ public class TodoApiTests
         // Swagger UIはブラウザで表示するHTMLを返します。
         var body = await response.Content.ReadAsStringAsync();
         Assert.Contains("Swagger UI", body);
+        Assert.DoesNotContain("Content-Security-Policy", response.Headers.Select(header => header.Key));
     }
 
     [Fact]
@@ -205,6 +206,10 @@ public class TodoApiTests
         Assert.Equal(
             "camera=(), microphone=(), geolocation=()",
             response.Headers.GetValues("Permissions-Policy").Single()
+        );
+        Assert.Equal(
+            "default-src 'none'; frame-ancestors 'none'; base-uri 'none'",
+            response.Headers.GetValues("Content-Security-Policy").Single()
         );
     }
 

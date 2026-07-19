@@ -23,6 +23,14 @@ public sealed class SecurityHeadersMiddleware
             context.Response.Headers["Permissions-Policy"] =
                 "camera=(), microphone=(), geolocation=()";
 
+            // Swagger UIは画面表示のためにスクリプトとスタイルを使うため、CSPの対象外にします。
+            // APIレスポンスでは外部リソースを読み込まないポリシーを返します。
+            if (!context.Request.Path.StartsWithSegments("/swagger"))
+            {
+                context.Response.Headers["Content-Security-Policy"] =
+                    "default-src 'none'; frame-ancestors 'none'; base-uri 'none'";
+            }
+
             // HTTPS接続時だけ、以後もHTTPSを使うようブラウザへ伝えます。
             // HTTP接続へこのヘッダーを返してもブラウザは安全な移行として扱えません。
             if (context.Request.IsHttps)
