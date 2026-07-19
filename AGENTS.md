@@ -6,7 +6,7 @@
 
 ## 現在の学習テーマ
 
-現在は「コンテナイメージをレジストリへ公開する」ステップです。
+現在は「ECS on FargateでAPIを動かす構成を理解する」ステップです。
 
 これまでの実装で学んだこと:
 
@@ -245,9 +245,20 @@
 - SHAタグと`latest`タグの違い
 - 本番でイメージタグを固定する理由
 
+今回のECS on Fargateで学ぶこと:
+
+- Task Definition、Task、Serviceの関係
+- ALBからTaskへHTTPを転送する流れ
+- ECSとALBのヘルスチェックの違い
+- Taskが複数ある場合の状態共有
+- ECSの環境変数とSecrets Managerの使い分け
+- 複数TaskでRedisが必要になる理由
+
 基礎学習の資料:
 
 - `docs/learning/18-code-coverage.md`
+- `docs/learning/19-container-registry.md`
+- `docs/learning/20-ecs-fargate.md`
 
 今回の基礎復習で学ぶこと:
 

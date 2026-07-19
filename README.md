@@ -64,7 +64,9 @@ dotnet --version
 │       ├── 15-container-deployment.md
 │       ├── 16-distroless-images.md
 │       ├── 17-ci.md
-│       └── 18-code-coverage.md
+│       ├── 18-code-coverage.md
+│       ├── 19-container-registry.md
+│       └── 20-ecs-fargate.md
 ├── SampleDotnet.slnx
 ├── dotnet-tools.json
 ├── TodoApi/
