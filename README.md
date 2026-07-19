@@ -82,7 +82,8 @@ dotnet --version
 │       ├── 31-redis-idempotency.md
 │       ├── 32-database-indexes.md
 │       ├── 33-api-key-lifecycle.md
-│       └── 34-cursor-pagination.md
+│       ├── 34-cursor-pagination.md
+│       └── 35-ci-quality-gates.md
 ├── SampleDotnet.slnx
 ├── dotnet-tools.json
 ├── TodoApi/

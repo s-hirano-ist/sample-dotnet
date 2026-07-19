@@ -27,8 +27,17 @@ jobs:
       - name: Restore
         run: dotnet restore
 
+      - name: Restore local tools
+        run: dotnet tool restore
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Verify EF Core migrations
+        run: dotnet ef migrations has-pending-model-changes --project TodoApi --startup-project TodoApi --no-build
+
       - name: Test
-        run: dotnet test --configuration Release --no-restore --results-directory TestResults --collect:"XPlat Code Coverage"
+        run: dotnet test --configuration Release --no-build --no-restore --results-directory TestResults --collect:"XPlat Code Coverage"
 
       - name: Upload coverage report
         if: always()
