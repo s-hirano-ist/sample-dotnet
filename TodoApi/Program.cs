@@ -230,7 +230,13 @@ app.MapGet("/", () => "Todo API is running.")
 
 // /healthは、監視システムがアプリとデータベースの状態を確認するためのURLです。
 // 正常ならHTTP 200、異常ならHTTP 503を返します。
-app.MapHealthChecks("/health")
+app.MapHealthChecks(
+        "/health",
+        new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+        {
+            ResponseWriter = HealthCheckResponseWriter.WriteAsync
+        }
+    )
     .WithName("GetHealth")
     .WithSummary("Check application health")
     .WithDescription("Checks the database and configured external dependencies.");
@@ -241,7 +247,8 @@ app.MapHealthChecks(
         "/live",
         new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
         {
-            Predicate = _ => false
+            Predicate = _ => false,
+            ResponseWriter = HealthCheckResponseWriter.WriteAsync
         }
     )
     .WithName("GetLiveness")
@@ -250,7 +257,13 @@ app.MapHealthChecks(
 
 // /readyは、DBやRedisなど登録済みの依存サービスを確認します。
 // 依存サービスが使えないとき、ロードバランサーから外す判断に使えます。
-app.MapHealthChecks("/ready")
+app.MapHealthChecks(
+        "/ready",
+        new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+        {
+            ResponseWriter = HealthCheckResponseWriter.WriteAsync
+        }
+    )
     .WithName("GetReadiness")
     .WithSummary("Check dependency readiness")
     .WithDescription("Checks whether the API dependencies are available.");

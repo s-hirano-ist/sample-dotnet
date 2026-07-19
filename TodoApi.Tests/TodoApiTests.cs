@@ -240,6 +240,10 @@ public class TodoApiTests
 
         // DBへ接続できているので、HTTP 200 OKを期待します。
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var body = await response.Content.ReadFromJsonAsync<JsonObject>();
+        Assert.NotNull(body);
+        Assert.Equal("Healthy", body["status"]?.GetValue<string>());
     }
 
     [Fact]
