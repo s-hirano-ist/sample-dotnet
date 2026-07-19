@@ -15,11 +15,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton<IValidateOptions<CorsOptions>, CorsOptionsValidator>();
 builder.Services
     .AddOptions<CorsOptions>()
-    .Bind(builder.Configuration.GetSection("Cors"))
+    .Bind(builder.Configuration.GetSection(ConfigurationDefaults.CorsSection))
     .ValidateOnStart();
 
 // CORSの設定をOptionsと同じ型へ読み込み、ポリシー作成に使います。
-var corsOptions = builder.Configuration.GetSection("Cors").Get<CorsOptions>() ?? new CorsOptions();
+var corsOptions = builder.Configuration
+    .GetSection(ConfigurationDefaults.CorsSection)
+    .Get<CorsOptions>() ?? new CorsOptions();
 var allowedOrigins = corsOptions.AllowedOrigins;
 
 builder.Services.AddCors(options =>
@@ -38,7 +40,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddSingleton<IValidateOptions<ApiKeyOptions>, ApiKeyOptionsValidator>();
 builder.Services
     .AddOptions<ApiKeyOptions>()
-    .Bind(builder.Configuration.GetSection("Authentication"))
+    .Bind(builder.Configuration.GetSection(ConfigurationDefaults.AuthenticationSection))
     .ValidateOnStart();
 
 builder.Services
@@ -69,7 +71,7 @@ builder.Services.AddSingleton<IAuthorizationMiddlewareResultHandler, Authorizati
 builder.Services.AddSingleton<IValidateOptions<RateLimitOptions>, RateLimitOptionsValidator>();
 builder.Services
     .AddOptions<RateLimitOptions>()
-    .Bind(builder.Configuration.GetSection("RateLimit"))
+    .Bind(builder.Configuration.GetSection(ConfigurationDefaults.RateLimitSection))
     .ValidateOnStart();
 
 // AddRateLimiterは、一定時間内のリクエスト数を制限する機能を登録します。
@@ -81,12 +83,14 @@ var rateLimitWindowSeconds = builder.Configuration.GetValue<int>("RateLimit:Wind
 
 if (useRedisRateLimit)
 {
-    var redisConnectionString = builder.Configuration.GetConnectionString("Redis");
+    var redisConnectionString = builder.Configuration.GetConnectionString(
+        ConfigurationDefaults.RedisConnection
+    );
 
     if (string.IsNullOrWhiteSpace(redisConnectionString))
     {
         throw new InvalidOperationException(
-            "RateLimit:Store is Redis, but ConnectionStrings:Redis is not configured."
+            $"RateLimit:Store is Redis, but ConnectionStrings:{ConfigurationDefaults.RedisConnection} is not configured."
         );
     }
 
@@ -155,7 +159,9 @@ builder.Services.AddOpenApi(options =>
 // AddDbContext は、Entity Framework Coreで使うDbContextをDIコンテナに登録します。
 // ConnectionStrings:TodoDatabase は appsettings.json に書いたSQLiteの接続先です。
 builder.Services.AddDbContext<TodoDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("TodoDatabase")));
+    options.UseSqlite(
+        builder.Configuration.GetConnectionString(ConfigurationDefaults.TodoDatabaseConnection)
+    ));
 
 // TodoServiceは、Todoの作成・取得・更新・削除の処理をまとめたサービスです。
 // AddScoped は、HTTPリクエストごとに1つのインスタンスを作る登録方法です。
