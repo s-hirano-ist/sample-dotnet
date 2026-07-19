@@ -25,6 +25,8 @@ builder.Services
     .Bind(builder.Configuration.GetSection(ConfigurationDefaults.OpenTelemetrySection))
     .ValidateOnStart();
 
+builder.Services.AddTodoPersistence(builder.Configuration);
+
 // 冪等性キーの結果をAPIプロセス内で共有するため、Singletonとして登録します。
 builder.Services.AddSingleton(TimeProvider.System);
 
@@ -186,16 +188,10 @@ builder.Services.AddOpenApi(options =>
     options.AddOperationTransformer<ApiKeyOperationTransformer>();
 });
 
-// AddDbContext は、Entity Framework Coreで使うDbContextをDIコンテナに登録します。
-// ConnectionStrings:TodoDatabase は appsettings.json に書いたSQLiteの接続先です。
-builder.Services.AddDbContext<TodoDbContext>(options =>
-    options.UseSqlite(
-        builder.Configuration.GetConnectionString(ConfigurationDefaults.TodoDatabaseConnection)
-    ));
-
 // TodoServiceは、Todoの作成・取得・更新・削除の処理をまとめたサービスです。
 // AddScoped は、HTTPリクエストごとに1つのインスタンスを作る登録方法です。
 builder.Services.AddScoped<TodoService>();
+builder.Services.AddScoped<ITodoRepository, EfTodoRepository>();
 // ApiMetricsは、HTTPリクエストの件数と処理時間を記録するSingletonです。
 builder.Services.AddSingleton<ApiMetrics>();
 
@@ -282,12 +278,23 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-// Migrate は、未適用のマイグレーションをデータベースへ反映します。
-// 今回はハンズオンを簡単にするため、起動時にSQLiteのテーブルを自動作成します。
+// SQLiteはローカル・テスト用にEnsureCreatedします。
+// PostgreSQLのMigrationはComposeの専用jobで適用し、必要な場合だけ起動時適用を許可します。
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<TodoDbContext>();
-    dbContext.Database.Migrate();
+    var databaseOptions = scope.ServiceProvider
+        .GetRequiredService<Microsoft.Extensions.Options.IOptions<DatabaseOptions>>()
+        .Value;
+
+    if (string.Equals(databaseOptions.Provider, "Sqlite", StringComparison.OrdinalIgnoreCase))
+    {
+        dbContext.Database.EnsureCreated();
+    }
+    else if (databaseOptions.ApplyMigrations)
+    {
+        dbContext.Database.Migrate();
+    }
 }
 
 // GET / にアクセスされたときの処理です。

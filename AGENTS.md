@@ -6,7 +6,7 @@
 
 ## 現在の学習テーマ
 
-現在は「冪等性キーに有効期限を付けてメモリ増加を抑える」ステップです。
+現在は「DDD観点でDB依存を分離し、SQLiteとPostgreSQLを切り替える」ステップです。
 
 これまでの実装で学んだこと:
 
@@ -229,6 +229,15 @@
 - `docker compose config`で設定を検証する方法
 - Dockerイメージをpushせずにビルド検証する方法
 - `needs`でJobの実行順を制御する方法
+
+今回のDBプロバイダー切替とRepository境界で学ぶこと:
+
+- `DatabaseOptions`で設定値を型安全に受け取る方法
+- `UseSqlite`と`UseNpgsql`を設定に応じて切り替える方法
+- `ITodoRepository`でアプリケーションとDB実装の境界を作る考え方
+- `TodoService`から`TodoDbContext`への直接依存を外す方法
+- SQLiteの`EnsureCreated`とPostgreSQLの`MigrateAsync`を使い分ける理由
+- 専用の`TodoApi.Migrator`とComposeの`depends_on`でDB変更を適用する流れ
 
 今回のコードカバレッジで学ぶこと:
 
@@ -463,6 +472,9 @@
 - Distroless実行イメージの適用条件を整理する 完了
 - APIコンテナを非rootユーザーで実行する 完了
 - CIでテストとコンテナビルドを自動検証する 完了
+- SQLiteテストとPostgreSQL実行環境を設定で切り替える 完了
+- TodoServiceからDB実装をRepository境界の後ろへ移す 完了
+- PostgreSQLマイグレーションを専用コンテナで適用する 完了
 - GHCRへコンテナイメージを手動公開できるようにする 完了
 - Request IDを例外処理ログまで伝播させる 完了
 - リクエストキャンセルを500へ変換しないようにする 完了

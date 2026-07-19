@@ -1,17 +1,15 @@
-using Microsoft.EntityFrameworkCore;
-
 // TodoServiceは、Todoを操作する処理をまとめたクラスです。
-// 今回からListではなく、Entity Framework Coreを通してSQLiteに保存します。
+// DBアクセスの詳細はITodoRepositoryへ隠し、業務ルールを担当します。
 public partial class TodoService
 {
-    private readonly TodoDbContext _dbContext;
+    private readonly ITodoRepository _repository;
     private readonly ILogger<TodoService> _logger;
 
-    // コンストラクタでTodoDbContextとILoggerを受け取ります。
+    // コンストラクタでRepositoryとILoggerを受け取ります。
     // ASP.NET CoreのDIが、必要なオブジェクトを自動で渡してくれます。
-    public TodoService(TodoDbContext dbContext, ILogger<TodoService> logger)
+    public TodoService(ITodoRepository repository, ILogger<TodoService> logger)
     {
-        _dbContext = dbContext;
+        _repository = repository;
         _logger = logger;
     }
 
@@ -27,56 +25,17 @@ public partial class TodoService
         CancellationToken cancellationToken
     )
     {
-        // IQueryableは、まだDBへ実行していない検索処理を表します。
-        // 条件を追加してからCountAsyncやToListAsyncを呼ぶと、SQLとして実行されます。
-        var query = _dbContext.Todos.AsNoTracking();
-
-        if (isDone.HasValue)
-        {
-            query = query.Where(todo => todo.IsDone == isDone.Value);
-        }
-
-        // Trimで前後の空白を取り除き、空文字列は検索条件にしません。
-        var searchTerm = search?.Trim() ?? string.Empty;
-
-        if (searchTerm.Length > 0)
-        {
-            // DBによって文字列比較の大文字・小文字の扱いが異なるため、
-            // 両方を小文字化して比較し、APIの挙動を一定にします。
-            var normalizedSearchTerm = searchTerm.ToLowerInvariant();
-            query = query.Where(todo => todo.Title.ToLower().Contains(normalizedSearchTerm));
-        }
-
-        var totalCount = await query.CountAsync(cancellationToken);
-
-        var normalizedSortBy = (sortBy ?? TodoSortValidation.DefaultSortBy).Trim().ToLowerInvariant();
-        var normalizedSortOrder = (sortOrder ?? TodoSortValidation.DefaultSortOrder).Trim().ToLowerInvariant();
-
-        // 外部入力をそのままSQLに渡さず、許可したプロパティだけを分岐で選びます。
-        query = normalizedSortBy switch
-        {
-            "title" when normalizedSortOrder == "desc" => query.OrderByDescending(todo => todo.Title).ThenByDescending(todo => todo.Id),
-            "title" => query.OrderBy(todo => todo.Title).ThenBy(todo => todo.Id),
-            "createdat" when normalizedSortOrder == "desc" => query.OrderByDescending(todo => todo.CreatedAt).ThenByDescending(todo => todo.Id),
-            "createdat" => query.OrderBy(todo => todo.CreatedAt).ThenBy(todo => todo.Id),
-            "id" when normalizedSortOrder == "desc" => query.OrderByDescending(todo => todo.Id),
-            _ => query.OrderBy(todo => todo.Id)
-        };
-
-        var todos = await query
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync(cancellationToken);
-
-        // 整数の割り算で余りがある場合にも、最後のページを1ページとして数えます。
-        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+        var result = await _repository.GetPageAsync(
+            new TodoListQuery(page, pageSize, isDone, search, sortBy, sortOrder),
+            cancellationToken
+        );
 
         return new TodoListResponse(
-            Items: todos,
-            Page: page,
-            PageSize: pageSize,
-            TotalCount: totalCount,
-            TotalPages: totalPages
+            result.Items,
+            result.Page,
+            result.PageSize,
+            result.TotalCount,
+            result.TotalPages
         );
     }
 
@@ -88,46 +47,20 @@ public partial class TodoService
         CancellationToken cancellationToken
     )
     {
-        var query = _dbContext.Todos.AsNoTracking();
+        var result = await _repository.GetCursorPageAsync(
+            new TodoCursorQuery(pageSize, afterId, isDone, search),
+            cancellationToken
+        );
 
-        if (afterId.HasValue)
-        {
-            query = query.Where(todo => todo.Id > afterId.Value);
-        }
-
-        if (isDone.HasValue)
-        {
-            query = query.Where(todo => todo.IsDone == isDone.Value);
-        }
-
-        var searchTerm = search?.Trim() ?? string.Empty;
-        if (searchTerm.Length > 0)
-        {
-            var normalizedSearchTerm = searchTerm.ToLowerInvariant();
-            query = query.Where(todo => todo.Title.ToLower().Contains(normalizedSearchTerm));
-        }
-
-        // IDの昇順を固定すると、前回の最後のIDより後ろだけを効率よく取得できます。
-        var todos = await query
-            .OrderBy(todo => todo.Id)
-            .Take(pageSize + 1)
-            .ToListAsync(cancellationToken);
-
-        var hasNextPage = todos.Count > pageSize;
-        if (hasNextPage)
-        {
-            todos.RemoveAt(todos.Count - 1);
-        }
-
-        var nextCursor = hasNextPage && todos.Count > 0
-            ? TodoCursor.Create(todos[^1].Id)
+        var nextCursor = result.HasNextPage && result.LastTodoId.HasValue
+            ? TodoCursor.Create(result.LastTodoId.Value)
             : null;
 
         return new TodoCursorListResponse(
-            Items: todos,
+            Items: result.Items,
             PageSize: pageSize,
             NextCursor: nextCursor,
-            HasNextPage: hasNextPage
+            HasNextPage: result.HasNextPage
         );
     }
 
@@ -135,12 +68,12 @@ public partial class TodoService
     {
         // FirstOrDefaultAsync は、条件に合う最初の要素をデータベースから探します。
         // 見つからない場合は null を返します。
-        return await _dbContext.Todos.FirstOrDefaultAsync(todo => todo.Id == id, cancellationToken);
+        return await _repository.GetByIdAsync(id, cancellationToken);
     }
 
     public async Task<TodoItem> CreateAsync(CreateTodoRequest request, CancellationToken cancellationToken)
     {
-        // IdはSQLiteが自動採番するので、ここでは指定しません。
+        // Idはデータベースが自動採番するので、ここでは指定しません。
         var todo = new TodoItem(
             Id: 0,
             Title: request.Title,
@@ -149,11 +82,11 @@ public partial class TodoService
             CompletedAt: null
         );
 
-        _dbContext.Todos.Add(todo);
+        _repository.Add(todo);
 
-        // SaveChangesAsync を呼ぶと、変更内容がSQLiteに保存されます。
-        // ここでSQLiteがIdを採番し、todo.Idにも反映されます。
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        // SaveChangesAsyncを呼ぶと、Repositoryの実装先へ保存されます。
+        // ここでデータベースがIdを採番し、todo.Idにも反映されます。
+        await _repository.SaveChangesAsync(cancellationToken);
 
         // {TodoId}は構造化ログのプレースホルダーです。
         // タイトル本文はログに出さず、操作とIDだけを記録します。
@@ -187,7 +120,7 @@ public partial class TodoService
             ? existingTodo.CompletedAt ?? DateTimeOffset.UtcNow
             : null;
 
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        await _repository.SaveChangesAsync(cancellationToken);
 
         LogTodoUpdated(id);
 
@@ -204,8 +137,8 @@ public partial class TodoService
             return false;
         }
 
-        _dbContext.Todos.Remove(todo);
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        _repository.Remove(todo);
+        await _repository.SaveChangesAsync(cancellationToken);
 
         LogTodoDeleted(id);
 

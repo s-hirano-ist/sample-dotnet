@@ -76,3 +76,38 @@ jobs:
           context: .
           push: false
           tags: todo-api:ci
+
+  compose-integration:
+    name: PostgreSQL Compose integration
+    needs: container
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Start Compose services
+        run: docker compose up -d --build
+
+      - name: Wait for API readiness
+        run: |
+          for attempt in {1..30}; do
+            if curl --fail --silent http://localhost:8080/ready; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker compose logs
+          exit 1
+
+      - name: Verify Todo API uses PostgreSQL
+        run: |
+          curl --fail --silent -X POST http://localhost:8080/todos \
+            -H 'Content-Type: application/json' \
+            -H 'X-API-Key: compose-dev-api-key' \
+            -d '{"title":"Compose PostgreSQL smoke test"}'
+          curl --fail --silent http://localhost:8080/todos
+
+      - name: Stop Compose services
+        if: always()
+        run: docker compose down --volumes
