@@ -6,7 +6,7 @@
 
 ## 現在の学習テーマ
 
-現在は「ECS on FargateでAPIを動かす構成を理解する」ステップです。
+現在は「セキュリティ自動検査をCIへ追加する」ステップです。
 
 これまでの実装で学んだこと:
 
@@ -254,11 +254,19 @@
 - ECSの環境変数とSecrets Managerの使い分け
 - 複数TaskでRedisが必要になる理由
 
+今回のセキュリティ検査で学ぶこと:
+
+- CodeQLでC#コードを解析する方法
+- DependabotでNuGetとGitHub Actionsを更新する方法
+- GitHub Actionsの権限を最小限にする考え方
+- 脆弱性検出、CI、レビューを組み合わせる流れ
+
 基礎学習の資料:
 
 - `docs/learning/18-code-coverage.md`
 - `docs/learning/19-container-registry.md`
 - `docs/learning/20-ecs-fargate.md`
+- `docs/learning/21-security-scanning.md`
 
 今回の基礎復習で学ぶこと:
 

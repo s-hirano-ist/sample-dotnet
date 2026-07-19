@@ -42,8 +42,10 @@ dotnet --version
 ├── compose.yaml
 ├── .dockerignore
 ├── .github/
+│   ├── dependabot.yml
 │   └── workflows/
 │       ├── ci.yml
+│       ├── codeql.yml
 │       └── publish-image.yml
 ├── docs/
 │   └── learning/
@@ -66,7 +68,8 @@ dotnet --version
 │       ├── 17-ci.md
 │       ├── 18-code-coverage.md
 │       ├── 19-container-registry.md
-│       └── 20-ecs-fargate.md
+│       ├── 20-ecs-fargate.md
+│       └── 21-security-scanning.md
 ├── SampleDotnet.slnx
 ├── dotnet-tools.json
 ├── TodoApi/
@@ -105,7 +108,7 @@ APIの入口は `TodoApi/Program.cs`、DB接続は `TodoApi/Data/`、DB変更履
 
 ASP.NET Coreの引数処理を基礎から学ぶ資料は `docs/learning/` にあります。
 
-GitHub ActionsのCI設定は `.github/workflows/ci.yml` にあります。pushやPull Request時に、.NETテスト、コードカバレッジ収集、Compose設定、Dockerイメージビルドを自動検証します。カバレッジレポートはWorkflowのArtifactとして保存されます。GHCRへのイメージ公開設定は `.github/workflows/publish-image.yml` にあり、GitHub Actions画面から手動実行します。
+GitHub ActionsのCI設定は `.github/workflows/ci.yml` にあります。pushやPull Request時に、.NETテスト、コードカバレッジ収集、Compose設定、Dockerイメージビルドを自動検証します。カバレッジレポートはWorkflowのArtifactとして保存されます。GHCRへのイメージ公開設定は `.github/workflows/publish-image.yml` にあり、GitHub Actions画面から手動実行します。CodeQLとDependabotの設定で、C#コードと依存パッケージも定期的に確認します。
 
 テストは `TodoApi.Tests/TodoApiTests.cs` にあります。
 
