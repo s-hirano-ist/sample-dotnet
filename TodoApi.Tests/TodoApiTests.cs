@@ -205,6 +205,22 @@ public class TodoApiTests
     }
 
     [Fact]
+    public async Task GetRoot_OverHttps_ReturnsHstsHeader()
+    {
+        using var factory = new TodoApiTestFactory();
+        using var client = factory.CreateClient();
+
+        // テスト用リクエストのスキームをHTTPSにして、HTTPS時の動作を確認します。
+        var response = await client.GetAsync("https://localhost/");
+
+        response.EnsureSuccessStatusCode();
+        Assert.Equal(
+            "max-age=31536000; includeSubDomains",
+            response.Headers.GetValues("Strict-Transport-Security").Single()
+        );
+    }
+
+    [Fact]
     public async Task GetHealth_WhenDatabaseIsAvailable_ReturnsOk()
     {
         using var factory = new TodoApiTestFactory();

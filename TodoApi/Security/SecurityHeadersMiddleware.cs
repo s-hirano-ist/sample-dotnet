@@ -19,6 +19,14 @@ public sealed class SecurityHeadersMiddleware
             context.Response.Headers["X-Frame-Options"] = "DENY";
             // Refererから不要なURL情報を送らないようにします。
             context.Response.Headers["Referrer-Policy"] = "no-referrer";
+
+            // HTTPS接続時だけ、以後もHTTPSを使うようブラウザへ伝えます。
+            // HTTP接続へこのヘッダーを返してもブラウザは安全な移行として扱えません。
+            if (context.Request.IsHttps)
+            {
+                context.Response.Headers["Strict-Transport-Security"] =
+                    "max-age=31536000; includeSubDomains";
+            }
         }
 
         await _next(context);
