@@ -61,6 +61,27 @@ builder.Services
             ),
         "Authentication must configure a legacy API key or at least one client."
     )
+    .Validate(
+        options => options.Clients.All(client =>
+            !string.IsNullOrWhiteSpace(client.Name)
+            && !string.IsNullOrWhiteSpace(client.Key)
+            && client.Permissions.Length > 0
+        ),
+        "Each Authentication client must have a name, key, and permission."
+    )
+    .Validate(
+        options =>
+        {
+            var keys = new[] { options.ApiKey }
+                .Concat(options.AdditionalApiKeys)
+                .Concat(options.Clients.Select(client => client.Key))
+                .Where(key => !string.IsNullOrWhiteSpace(key))
+                .ToArray();
+
+            return keys.Distinct(StringComparer.Ordinal).Count() == keys.Length;
+        },
+        "Authentication API keys must be unique."
+    )
     .ValidateOnStart();
 
 builder.Services
