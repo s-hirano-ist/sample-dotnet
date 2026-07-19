@@ -3,4 +3,5 @@ public static class ApiPolicyDefaults
 {
     public const string CorsPolicy = "Frontend";
     public const string RateLimitPolicy = "api";
+    public const string TodoWriteAuthorizationPolicy = "TodoWrite";
 }

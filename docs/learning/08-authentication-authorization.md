@@ -78,6 +78,19 @@ app.MapPost("/todos", /* 処理 */)
 
 `RequireAuthorization`を付けたエンドポイントは、認証に成功していないと実行されません。
 
+このAPIでは、Todoの書き込み操作に`TodoWrite`という名前付き認可ポリシーを使います。
+
+```csharp
+options.AddPolicy("TodoWrite", policy =>
+{
+    policy
+        .AddAuthenticationSchemes("ApiKey")
+        .RequireAuthenticatedUser();
+});
+```
+
+名前付きポリシーにすると、将来「APIキーに加えて特定の権限も必要」といった条件を一か所へ追加できます。
+
 現在のAPIでは次の操作を保護しています。
 
 ```text

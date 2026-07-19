@@ -61,7 +61,16 @@ builder.Services
     );
 
 // AddAuthorizationは、認証済みかどうかによってエンドポイントへのアクセスを制御します。
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    // Todoの作成・更新・削除には、APIキー認証済みであることを要求します。
+    options.AddPolicy(ApiPolicyDefaults.TodoWriteAuthorizationPolicy, policy =>
+    {
+        policy
+            .AddAuthenticationSchemes(ApiKeyAuthenticationDefaults.AuthenticationScheme)
+            .RequireAuthenticatedUser();
+    });
+});
 
 // レート制限の設定をOptionsへ束ね、起動時に値を検証します。
 builder.Services
@@ -369,7 +378,7 @@ app.MapPost("/todos", async (
     .Produces<ApiError>(StatusCodes.Status400BadRequest)
     .Produces(StatusCodes.Status401Unauthorized)
     .Produces<Microsoft.AspNetCore.Mvc.ProblemDetails>(StatusCodes.Status500InternalServerError)
-    .RequireAuthorization()
+    .RequireAuthorization(ApiPolicyDefaults.TodoWriteAuthorizationPolicy)
     .RequireRateLimiting(ApiPolicyDefaults.RateLimitPolicy);
 
 // PUT /todos/1 は、指定したTodoを更新します。
@@ -405,7 +414,7 @@ app.MapPut("/todos/{id:int}", async (
     .Produces(StatusCodes.Status401Unauthorized)
     .Produces(StatusCodes.Status404NotFound)
     .Produces<Microsoft.AspNetCore.Mvc.ProblemDetails>(StatusCodes.Status500InternalServerError)
-    .RequireAuthorization()
+    .RequireAuthorization(ApiPolicyDefaults.TodoWriteAuthorizationPolicy)
     .RequireRateLimiting(ApiPolicyDefaults.RateLimitPolicy);
 
 // DELETE /todos/1 は、指定したTodoを削除します。
@@ -433,7 +442,7 @@ app.MapDelete("/todos/{id:int}", async (
     .Produces(StatusCodes.Status401Unauthorized)
     .Produces(StatusCodes.Status404NotFound)
     .Produces<Microsoft.AspNetCore.Mvc.ProblemDetails>(StatusCodes.Status500InternalServerError)
-    .RequireAuthorization()
+    .RequireAuthorization(ApiPolicyDefaults.TodoWriteAuthorizationPolicy)
     .RequireRateLimiting(ApiPolicyDefaults.RateLimitPolicy);
 
 // アプリを起動して、HTTPリクエストを待ち受けます。
