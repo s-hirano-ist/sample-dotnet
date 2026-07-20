@@ -6,7 +6,7 @@
 
 ## 現在の学習テーマ
 
-現在は「DDD観点でTodoタイトルをValue Object化する」ステップです。
+現在は「DDD観点でTodoのUse CaseをApplication層へ分離する」ステップです。
 
 これまでの実装で学んだこと:
 
@@ -256,6 +256,14 @@
 - APIの文字列形式とDomain内部のValue Objectを分離する方法
 - 既存DBスキーマを変えずに段階的にValue Objectを導入する方法
 
+今回のApplication Use Case分離で学ぶこと:
+
+- HTTPエンドポイントと業務操作の責務を分ける方法
+- 一覧取得をQuery Use Case、作成・更新・削除をCommand Use Caseとして分ける考え方
+- Use Caseへ必要なRepository、Logger、TimeProviderだけをDIする方法
+- 冪等性キー処理から作成Use Caseを呼び出す流れ
+- `Program.cs`をHTTP入力検証とレスポンス変換に集中させる方法
+
 今回のコードカバレッジで学ぶこと:
 
 - Line、Branch、Method coverageの違い
@@ -405,7 +413,7 @@
 - `docs/learning/17-ci.md`
 - `docs/learning/18-code-coverage.md`
 
-現在のAPI入口は `TodoApi/Program.cs`、DB接続は `TodoApi/Data/TodoDbContext.cs`、Todo操作ロジックは `TodoApi/Services/TodoService.cs`、テストは `TodoApi.Tests/TodoApiTests.cs` にあります。
+現在のAPI入口は `TodoApi/Program.cs`、TodoのUse Caseは `TodoApi/Application/Todos/`、DB接続は `TodoApi/Data/TodoDbContext.cs`、Repository実装は `TodoApi/Infrastructure/Persistence/EfTodoRepository.cs`、テストは `TodoApi.Tests/` にあります。
 
 ## 今後の拡張/学習計画
 
@@ -496,6 +504,8 @@
 - Todoのドメインルールと時刻依存をテストで検証する 完了
 - TodoTitleをValue Objectとして導入する 完了
 - Value Objectの等価性と不正値拒否をテストする 完了
+- TodoServiceをCRUD Use Caseへ分割する 完了
+- HTTP入口からApplication Use CaseをDIして呼び出す構成にする 完了
 - GHCRへコンテナイメージを手動公開できるようにする 完了
 - Request IDを例外処理ログまで伝播させる 完了
 - リクエストキャンセルを500へ変換しないようにする 完了

@@ -86,7 +86,8 @@ dotnet --version
 │       ├── 35-ci-quality-gates.md
 │       ├── 36-database-provider-switching.md
 │       ├── 37-todo-entity-aggregate.md
-│       └── 38-todo-title-value-object.md
+│       ├── 38-todo-title-value-object.md
+│       └── 39-application-use-cases.md
 ├── SampleDotnet.slnx
 ├── dotnet-tools.json
 ├── TodoApi/
@@ -112,8 +113,6 @@ dotnet --version
 │   │   └── TodoListResponse.cs
 │   ├── Infrastructure/
 │   │   └── Persistence/
-│   ├── Services/
-│   │   └── TodoService.cs
 │   ├── TodoApi.csproj
 │   ├── Validation/
 │   │   ├── ApiError.cs
@@ -130,13 +129,13 @@ dotnet --version
 └── mise.toml
 ```
 
-APIの入口は `TodoApi/Program.cs`、TodoのドメインルールとEntityは `TodoApi/Domain/` と `TodoApi/Models/`、DB設定は `TodoApi/Configuration/`、DB接続とRepository実装は `TodoApi/Infrastructure/Persistence/`、DB変更履歴は `TodoApi/Migrations/`、マイグレーション実行用プログラムは `TodoApi.Migrator/` にあります。Todo操作の処理は `TodoApi/Services/`、HTTP入力チェックとエラー形式は `TodoApi/Validation/` にあります。
+APIの入口は `TodoApi/Program.cs`、TodoのドメインルールとEntityは `TodoApi/Domain/` と `TodoApi/Models/`、Todoのユースケースは `TodoApi/Application/Todos/`、DB設定は `TodoApi/Configuration/`、DB接続とRepository実装は `TodoApi/Infrastructure/Persistence/`、DB変更履歴は `TodoApi/Migrations/`、マイグレーション実行用プログラムは `TodoApi.Migrator/` にあります。HTTP入力チェックとエラー形式は `TodoApi/Validation/` にあります。
 
 ASP.NET Coreの引数処理を基礎から学ぶ資料は `docs/learning/` にあります。
 
 GitHub ActionsのCI設定は `.github/workflows/ci.yml` にあります。pushやPull Request時に、.NETテスト、コードカバレッジ収集、Compose設定、Dockerイメージビルドを自動検証します。カバレッジレポートはWorkflowのArtifactとして保存されます。GHCRへのイメージ公開設定は `.github/workflows/publish-image.yml` にあり、GitHub Actions画面から手動実行します。CodeQLとDependabotの設定で、C#コードと依存パッケージも定期的に確認します。
 
-テストは `TodoApi.Tests/TodoApiTests.cs` にあります。
+テストは `TodoApi.Tests/` にあります。APIの動作は`TodoApiTests.cs`、DomainとUse Caseに近いロジックは個別のテストファイルに分けています。
 
 ## 起動する
 
@@ -277,13 +276,13 @@ Swagger UIはOpenAPI仕様書を読み込み、APIの一覧表示やリクエス
 アプリを起動したターミナルで、Swagger UIやcurlからTodoを操作します。次のようなログが表示されます。
 
 ```text
-info: TodoService[0]
+info: CreateTodoUseCase[0]
       Created todo with id 1
-warn: TodoService[0]
+warn: DeleteTodoUseCase[0]
       Todo with id 999 was not found for delete
 ```
 
-`ILogger<TodoService>`はDIコンテナから自動で渡されます。`{TodoId}`のようなプレースホルダーを使うと、ログメッセージと値を分けて扱える構造化ログになります。タイトル本文はログに出さず、必要最小限の情報だけを記録しています。
+`ILogger<CreateTodoUseCase>`などのLoggerはDIコンテナから自動で渡されます。`{TodoId}`のようなプレースホルダーを使うと、ログメッセージと値を分けて扱える構造化ログになります。タイトル本文はログに出さず、必要最小限の情報だけを記録しています。
 
 アクセスログの例:
 
