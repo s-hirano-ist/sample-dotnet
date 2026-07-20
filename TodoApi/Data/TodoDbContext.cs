@@ -21,7 +21,7 @@ public class TodoDbContext : DbContext
 
             entity.Property(todo => todo.Title)
                 .IsRequired()
-                .HasMaxLength(TodoValidation.MaxTitleLength);
+                .HasMaxLength(TodoRules.MaxTitleLength);
 
             entity.Property(todo => todo.IsDone)
                 .IsRequired();

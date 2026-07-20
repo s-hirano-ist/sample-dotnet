@@ -6,7 +6,7 @@
 
 ## 現在の学習テーマ
 
-現在は「DDD観点でDB依存を分離し、SQLiteとPostgreSQLを切り替える」ステップです。
+現在は「DDD観点でTodo Entity/Aggregateを設計する」ステップです。
 
 これまでの実装で学んだこと:
 
@@ -238,6 +238,15 @@
 - `TodoService`から`TodoDbContext`への直接依存を外す方法
 - SQLiteの`EnsureCreated`とPostgreSQLの`MigrateAsync`を使い分ける理由
 - 専用の`TodoApi.Migrator`とComposeの`depends_on`でDB変更を適用する流れ
+
+今回のTodo Entity/Aggregate化で学ぶこと:
+
+- Entityをデータだけでなく、状態変更の振る舞いを持つ型にする方法
+- Aggregate RootとしてTodoの状態変更をTodoItem自身に閉じ込める考え方
+- private setterで外部からの直接変更を防ぐ方法
+- FactoryとDomainResultで生成時のドメインルールを表現する方法
+- `TimeProvider`を使って時刻依存の処理をテスト可能にする方法
+- Domain層のルールをAPI入力検証から再利用する依存方向
 
 今回のコードカバレッジで学ぶこと:
 
@@ -475,6 +484,8 @@
 - SQLiteテストとPostgreSQL実行環境を設定で切り替える 完了
 - TodoServiceからDB実装をRepository境界の後ろへ移す 完了
 - PostgreSQLマイグレーションを専用コンテナで適用する 完了
+- TodoItemをEntity/Aggregate Rootとして状態変更をカプセル化する 完了
+- Todoのドメインルールと時刻依存をテストで検証する 完了
 - GHCRへコンテナイメージを手動公開できるようにする 完了
 - Request IDを例外処理ログまで伝播させる 完了
 - リクエストキャンセルを500へ変換しないようにする 完了

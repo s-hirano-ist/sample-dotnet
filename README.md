@@ -84,7 +84,8 @@ dotnet --version
 │       ├── 33-api-key-lifecycle.md
 │       ├── 34-cursor-pagination.md
 │       ├── 35-ci-quality-gates.md
-│       └── 36-database-provider-switching.md
+│       ├── 36-database-provider-switching.md
+│       └── 37-todo-entity-aggregate.md
 ├── SampleDotnet.slnx
 ├── dotnet-tools.json
 ├── TodoApi/
@@ -125,7 +126,7 @@ dotnet --version
 └── mise.toml
 ```
 
-APIの入口は `TodoApi/Program.cs`、DB設定は `TodoApi/Configuration/`、DB接続とRepository実装は `TodoApi/Infrastructure/Persistence/`、DB変更履歴は `TodoApi/Migrations/`、マイグレーション実行用プログラムは `TodoApi.Migrator/` にあります。Todo操作の処理は `TodoApi/Services/`、入力チェックとエラー形式は `TodoApi/Validation/` にあります。
+APIの入口は `TodoApi/Program.cs`、TodoのドメインルールとEntityは `TodoApi/Domain/` と `TodoApi/Models/`、DB設定は `TodoApi/Configuration/`、DB接続とRepository実装は `TodoApi/Infrastructure/Persistence/`、DB変更履歴は `TodoApi/Migrations/`、マイグレーション実行用プログラムは `TodoApi.Migrator/` にあります。Todo操作の処理は `TodoApi/Services/`、HTTP入力チェックとエラー形式は `TodoApi/Validation/` にあります。
 
 ASP.NET Coreの引数処理を基礎から学ぶ資料は `docs/learning/` にあります。
 

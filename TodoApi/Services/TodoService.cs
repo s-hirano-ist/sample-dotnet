@@ -4,13 +4,19 @@ public partial class TodoService
 {
     private readonly ITodoRepository _repository;
     private readonly ILogger<TodoService> _logger;
+    private readonly TimeProvider _timeProvider;
 
     // コンストラクタでRepositoryとILoggerを受け取ります。
     // ASP.NET CoreのDIが、必要なオブジェクトを自動で渡してくれます。
-    public TodoService(ITodoRepository repository, ILogger<TodoService> logger)
+    public TodoService(
+        ITodoRepository repository,
+        ILogger<TodoService> logger,
+        TimeProvider timeProvider
+    )
     {
         _repository = repository;
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     // SkipとTakeを使い、必要なページのTodoだけをデータベースから読み取ります。
@@ -73,14 +79,8 @@ public partial class TodoService
 
     public async Task<TodoItem> CreateAsync(CreateTodoRequest request, CancellationToken cancellationToken)
     {
-        // Idはデータベースが自動採番するので、ここでは指定しません。
-        var todo = new TodoItem(
-            Id: 0,
-            Title: request.Title,
-            IsDone: false,
-            CreatedAt: DateTimeOffset.UtcNow,
-            CompletedAt: null
-        );
+        var creation = TodoItem.Create(request.Title, _timeProvider.GetUtcNow());
+        var todo = RequireValue(creation);
 
         _repository.Add(todo);
 
@@ -109,16 +109,19 @@ public partial class TodoService
             return null;
         }
 
-        // ?? は null合体演算子です。
-        // 左側がnullでなければ左側、nullなら右側を使います。
-        var isDone = request.IsDone ?? existingTodo.IsDone;
+        if (request.Title is not null)
+        {
+            RequireSuccess(existingTodo.ChangeTitle(request.Title));
+        }
 
-        existingTodo.Title = request.Title ?? existingTodo.Title;
-        existingTodo.IsDone = isDone;
-        // 完了状態なら完了日時を入れ、未完了なら null に戻します。
-        existingTodo.CompletedAt = isDone
-            ? existingTodo.CompletedAt ?? DateTimeOffset.UtcNow
-            : null;
+        if (request.IsDone is true)
+        {
+            RequireSuccess(existingTodo.Complete(_timeProvider.GetUtcNow()));
+        }
+        else if (request.IsDone is false)
+        {
+            RequireSuccess(existingTodo.Reopen());
+        }
 
         await _repository.SaveChangesAsync(cancellationToken);
 
@@ -159,4 +162,26 @@ public partial class TodoService
 
     [LoggerMessage(EventId = ApiLogEvents.TodoDeleteNotFoundId, Level = LogLevel.Warning, Message = "Todo with id {TodoId} was not found for delete")]
     private partial void LogTodoDeleteNotFound(int todoId);
+
+    private static TodoItem RequireValue(DomainResult<TodoItem> result)
+    {
+        if (result.IsSuccess && result.Value is not null)
+        {
+            return result.Value;
+        }
+
+        throw new InvalidOperationException(
+            $"Todo domain rule failed: {result.Error?.Code ?? "unknown"}"
+        );
+    }
+
+    private static void RequireSuccess(DomainResult result)
+    {
+        if (!result.IsSuccess)
+        {
+            throw new InvalidOperationException(
+                $"Todo domain rule failed: {result.Error?.Code ?? "unknown"}"
+            );
+        }
+    }
 }

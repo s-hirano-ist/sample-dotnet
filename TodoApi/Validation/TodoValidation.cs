@@ -3,7 +3,8 @@
 public static class TodoValidation
 {
     // const はコンパイル時に決まる定数です。
-    public const int MaxTitleLength = 100;
+    // API層からも同じドメインルールを使い、Entityと制約値がずれないようにします。
+    public const int MaxTitleLength = TodoRules.MaxTitleLength;
 
     public static ValidationResult ValidateTitle(string? title)
     {
