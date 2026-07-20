@@ -194,6 +194,7 @@ builder.Services.AddScoped<TodoQueryUseCase>();
 builder.Services.AddScoped<CreateTodoUseCase>();
 builder.Services.AddScoped<UpdateTodoUseCase>();
 builder.Services.AddScoped<DeleteTodoUseCase>();
+builder.Services.AddSingleton<IDomainEventDispatcher, LoggingDomainEventDispatcher>();
 builder.Services.AddScoped<ITodoRepository, EfTodoRepository>();
 // ApiMetricsは、HTTPリクエストの件数と処理時間を記録するSingletonです。
 builder.Services.AddSingleton<ApiMetrics>();

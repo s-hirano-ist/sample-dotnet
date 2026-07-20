@@ -4,16 +4,19 @@ public partial class CreateTodoUseCase
     private readonly ITodoRepository _repository;
     private readonly ILogger<CreateTodoUseCase> _logger;
     private readonly TimeProvider _timeProvider;
+    private readonly IDomainEventDispatcher _domainEventDispatcher;
 
     public CreateTodoUseCase(
         ITodoRepository repository,
         ILogger<CreateTodoUseCase> logger,
-        TimeProvider timeProvider
+        TimeProvider timeProvider,
+        IDomainEventDispatcher domainEventDispatcher
     )
     {
         _repository = repository;
         _logger = logger;
         _timeProvider = timeProvider;
+        _domainEventDispatcher = domainEventDispatcher;
     }
 
     public async Task<TodoItem> ExecuteAsync(
@@ -26,6 +29,12 @@ public partial class CreateTodoUseCase
 
         _repository.Add(todo);
         await _repository.SaveChangesAsync(cancellationToken);
+
+        todo.AddDomainEvent(new TodoCreatedDomainEvent(todo.Id));
+        await _domainEventDispatcher.DispatchAsync(
+            todo.DequeueDomainEvents(),
+            cancellationToken
+        );
 
         LogTodoCreated(todo.Id);
         return todo;

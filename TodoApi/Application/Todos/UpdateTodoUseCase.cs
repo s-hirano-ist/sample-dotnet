@@ -4,16 +4,19 @@ public partial class UpdateTodoUseCase
     private readonly ITodoRepository _repository;
     private readonly ILogger<UpdateTodoUseCase> _logger;
     private readonly TimeProvider _timeProvider;
+    private readonly IDomainEventDispatcher _domainEventDispatcher;
 
     public UpdateTodoUseCase(
         ITodoRepository repository,
         ILogger<UpdateTodoUseCase> logger,
-        TimeProvider timeProvider
+        TimeProvider timeProvider,
+        IDomainEventDispatcher domainEventDispatcher
     )
     {
         _repository = repository;
         _logger = logger;
         _timeProvider = timeProvider;
+        _domainEventDispatcher = domainEventDispatcher;
     }
 
     public async Task<TodoItem?> ExecuteAsync(
@@ -45,6 +48,11 @@ public partial class UpdateTodoUseCase
         }
 
         await _repository.SaveChangesAsync(cancellationToken);
+
+        await _domainEventDispatcher.DispatchAsync(
+            todo.DequeueDomainEvents(),
+            cancellationToken
+        );
 
         LogTodoUpdated(id);
         return todo;

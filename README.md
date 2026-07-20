@@ -88,7 +88,8 @@ dotnet --version
 │       ├── 37-todo-entity-aggregate.md
 │       ├── 38-todo-title-value-object.md
 │       ├── 39-application-use-cases.md
-│       └── 40-specifications.md
+│       ├── 40-specifications.md
+│       └── 41-domain-events.md
 ├── SampleDotnet.slnx
 ├── dotnet-tools.json
 ├── TodoApi/
@@ -102,6 +103,8 @@ dotnet --version
 │   ├── Application/
 │   │   └── Todos/
 │   ├── Domain/
+│   │   ├── IDomainEvent.cs
+│   │   ├── TodoDomainEvents.cs
 │   │   ├── TodoFilterSpecification.cs
 │   │   ├── TodoRules.cs
 │   │   └── TodoTitle.cs

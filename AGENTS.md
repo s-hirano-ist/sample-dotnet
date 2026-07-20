@@ -6,7 +6,7 @@
 
 ## 現在の学習テーマ
 
-現在は「DDD観点でTodo一覧のSpecificationを導入する」ステップです。
+現在は「DDD観点でTodoのDomain Eventを導入する」ステップです。
 
 これまでの実装で学んだこと:
 
@@ -272,6 +272,15 @@
 - Query Use Case、Repository、Specificationの責務を分ける考え方
 - 現在のTodoにDomain Serviceを人工的に追加しない判断
 
+今回のDomain Event導入で学ぶこと:
+
+- Entity内で発生した状態変化をイベントとして保持する方法
+- Domain Eventを事実として表現し、副作用をDispatcherへ分離する考え方
+- DB保存成功後にイベントを発行する順序
+- 作成・完了・再開・削除などのイベントをDIされたDispatcherで処理する方法
+- 同じ状態変更でイベントを二重発行しない設計
+- WebApplicationFactoryを使う統合テストの実行競合を避ける考え方
+
 今回のコードカバレッジで学ぶこと:
 
 - Line、Branch、Method coverageの違い
@@ -516,6 +525,8 @@
 - HTTP入口からApplication Use CaseをDIして呼び出す構成にする 完了
 - Todo一覧の検索条件をSpecificationへ分離する 完了
 - SpecificationをEF Coreのクエリへ適用する 完了
+- Todoの状態変化をDomain Eventとして発行する 完了
+- Domain EventをDispatcherから構造化ログへ接続する 完了
 - GHCRへコンテナイメージを手動公開できるようにする 完了
 - Request IDを例外処理ログまで伝播させる 完了
 - リクエストキャンセルを500へ変換しないようにする 完了

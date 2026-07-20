@@ -3,14 +3,17 @@ public partial class DeleteTodoUseCase
 {
     private readonly ITodoRepository _repository;
     private readonly ILogger<DeleteTodoUseCase> _logger;
+    private readonly IDomainEventDispatcher _domainEventDispatcher;
 
     public DeleteTodoUseCase(
         ITodoRepository repository,
-        ILogger<DeleteTodoUseCase> logger
+        ILogger<DeleteTodoUseCase> logger,
+        IDomainEventDispatcher domainEventDispatcher
     )
     {
         _repository = repository;
         _logger = logger;
+        _domainEventDispatcher = domainEventDispatcher;
     }
 
     public async Task<bool> ExecuteAsync(int id, CancellationToken cancellationToken)
@@ -24,7 +27,13 @@ public partial class DeleteTodoUseCase
         }
 
         _repository.Remove(todo);
+        todo.AddDomainEvent(new TodoDeletedDomainEvent(todo.Id));
         await _repository.SaveChangesAsync(cancellationToken);
+
+        await _domainEventDispatcher.DispatchAsync(
+            todo.DequeueDomainEvents(),
+            cancellationToken
+        );
 
         LogTodoDeleted(id);
         return true;
