@@ -6,7 +6,7 @@
 
 ## 現在の学習テーマ
 
-現在は「冪等性キーに有効期限を付けてメモリ増加を抑える」ステップです。
+現在は「DDD観点でTodoのDomain Eventを導入する」ステップです。
 
 これまでの実装で学んだこと:
 
@@ -230,6 +230,57 @@
 - Dockerイメージをpushせずにビルド検証する方法
 - `needs`でJobの実行順を制御する方法
 
+今回のDBプロバイダー切替とRepository境界で学ぶこと:
+
+- `DatabaseOptions`で設定値を型安全に受け取る方法
+- `UseSqlite`と`UseNpgsql`を設定に応じて切り替える方法
+- `ITodoRepository`でアプリケーションとDB実装の境界を作る考え方
+- `TodoService`から`TodoDbContext`への直接依存を外す方法
+- SQLiteの`EnsureCreated`とPostgreSQLの`MigrateAsync`を使い分ける理由
+- 専用の`TodoApi.Migrator`とComposeの`depends_on`でDB変更を適用する流れ
+
+今回のTodo Entity/Aggregate化で学ぶこと:
+
+- Entityをデータだけでなく、状態変更の振る舞いを持つ型にする方法
+- Aggregate RootとしてTodoの状態変更をTodoItem自身に閉じ込める考え方
+- private setterで外部からの直接変更を防ぐ方法
+- FactoryとDomainResultで生成時のドメインルールを表現する方法
+- `TimeProvider`を使って時刻依存の処理をテスト可能にする方法
+- Domain層のルールをAPI入力検証から再利用する依存方向
+
+今回のValue Object化で学ぶこと:
+
+- `TodoTitle`のように、値と制約を一つの型へまとめる方法
+- `record`を使った値ベースの等価性
+- Value Objectを無効な状態で生成できないFactoryの考え方
+- APIの文字列形式とDomain内部のValue Objectを分離する方法
+- 既存DBスキーマを変えずに段階的にValue Objectを導入する方法
+
+今回のApplication Use Case分離で学ぶこと:
+
+- HTTPエンドポイントと業務操作の責務を分ける方法
+- 一覧取得をQuery Use Case、作成・更新・削除をCommand Use Caseとして分ける考え方
+- Use Caseへ必要なRepository、Logger、TimeProviderだけをDIする方法
+- 冪等性キー処理から作成Use Caseを呼び出す流れ
+- `Program.cs`をHTTP入力検証とレスポンス変換に集中させる方法
+
+今回のSpecification導入で学ぶこと:
+
+- 検索条件を一つのSpecificationオブジェクトへまとめる方法
+- `Expression<Func<T, bool>>`を使って条件を表現する方法
+- SpecificationをEF Coreの`IQueryable`へ適用する流れ
+- Query Use Case、Repository、Specificationの責務を分ける考え方
+- 現在のTodoにDomain Serviceを人工的に追加しない判断
+
+今回のDomain Event導入で学ぶこと:
+
+- Entity内で発生した状態変化をイベントとして保持する方法
+- Domain Eventを事実として表現し、副作用をDispatcherへ分離する考え方
+- DB保存成功後にイベントを発行する順序
+- 作成・完了・再開・削除などのイベントをDIされたDispatcherで処理する方法
+- 同じ状態変更でイベントを二重発行しない設計
+- WebApplicationFactoryを使う統合テストの実行競合を避ける考え方
+
 今回のコードカバレッジで学ぶこと:
 
 - Line、Branch、Method coverageの違い
@@ -379,7 +430,7 @@
 - `docs/learning/17-ci.md`
 - `docs/learning/18-code-coverage.md`
 
-現在のAPI入口は `TodoApi/Program.cs`、DB接続は `TodoApi/Data/TodoDbContext.cs`、Todo操作ロジックは `TodoApi/Services/TodoService.cs`、テストは `TodoApi.Tests/TodoApiTests.cs` にあります。
+現在のAPI入口は `TodoApi/Program.cs`、TodoのUse Caseは `TodoApi/Application/Todos/`、DB接続は `TodoApi/Data/TodoDbContext.cs`、Repository実装は `TodoApi/Infrastructure/Persistence/EfTodoRepository.cs`、テストは `TodoApi.Tests/` にあります。
 
 ## 今後の拡張/学習計画
 
@@ -463,6 +514,19 @@
 - Distroless実行イメージの適用条件を整理する 完了
 - APIコンテナを非rootユーザーで実行する 完了
 - CIでテストとコンテナビルドを自動検証する 完了
+- SQLiteテストとPostgreSQL実行環境を設定で切り替える 完了
+- TodoServiceからDB実装をRepository境界の後ろへ移す 完了
+- PostgreSQLマイグレーションを専用コンテナで適用する 完了
+- TodoItemをEntity/Aggregate Rootとして状態変更をカプセル化する 完了
+- Todoのドメインルールと時刻依存をテストで検証する 完了
+- TodoTitleをValue Objectとして導入する 完了
+- Value Objectの等価性と不正値拒否をテストする 完了
+- TodoServiceをCRUD Use Caseへ分割する 完了
+- HTTP入口からApplication Use CaseをDIして呼び出す構成にする 完了
+- Todo一覧の検索条件をSpecificationへ分離する 完了
+- SpecificationをEF Coreのクエリへ適用する 完了
+- Todoの状態変化をDomain Eventとして発行する 完了
+- Domain EventをDispatcherから構造化ログへ接続する 完了
 - GHCRへコンテナイメージを手動公開できるようにする 完了
 - Request IDを例外処理ログまで伝播させる 完了
 - リクエストキャンセルを500へ変換しないようにする 完了

@@ -5,12 +5,19 @@ WORKDIR /src
 
 # 先にプロジェクトファイルだけコピーすると、ソース変更時も復元結果を再利用しやすくなります。
 COPY TodoApi/TodoApi.csproj TodoApi/
-RUN dotnet restore TodoApi/TodoApi.csproj
+COPY TodoApi.Migrator/TodoApi.Migrator.csproj TodoApi.Migrator/
+RUN dotnet restore TodoApi.Migrator/TodoApi.Migrator.csproj --runtime linux-x64
 
 COPY TodoApi/ TodoApi/
+COPY TodoApi.Migrator/ TodoApi.Migrator/
 RUN dotnet publish TodoApi/TodoApi.csproj \
     --configuration Release \
     --output /app/publish \
+    --no-restore
+
+RUN dotnet publish TodoApi.Migrator/TodoApi.Migrator.csproj \
+    --configuration Release \
+    --output /app/migrator \
     --no-restore
 
 # 実行時はSDKを含まない軽量なASP.NET Coreランタイムイメージを使います。
@@ -24,10 +31,11 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=build /app/publish .
+COPY --from=build /app/migrator /app/migrator
 
-# SQLiteとData Protectionキーを書き込めるディレクトリを、実行ユーザー用に準備します。
-RUN mkdir --parents /data /home/app/.aspnet/DataProtection-Keys \
-    && chown --recursive $APP_UID:$APP_UID /data /home/app
+# Data Protectionキーを書き込めるディレクトリを、実行ユーザー用に準備します。
+RUN mkdir --parents /home/app/.aspnet/DataProtection-Keys \
+    && chown --recursive $APP_UID:$APP_UID /home/app
 
 # コンテナ内のHTTP待ち受けポートです。
 ENV ASPNETCORE_HTTP_PORTS=8080

@@ -3,10 +3,22 @@ services:
     image: sample-dotnet-todo-api
     user: "0"
     entrypoint: ["/bin/sh", "-c"]
-    command: ["chown -R 1654:1654 /data /keys"]
+    command: ["chown -R 1654:1654 /keys"]
     volumes:
-      - todo-data:/data
       - data-protection-keys:/keys
+
+  todo-api-migrate:
+    image: sample-dotnet-todo-api
+    entrypoint: ["dotnet"]
+    command:
+      - "/app/migrator/TodoApi.Migrator.dll"
+      - "--connection"
+      - "Host=postgres;Port=5432;Database=todo;Username=todo;Password=${POSTGRES_PASSWORD:-compose-dev-password}"
+    environment:
+      Database__Provider: Postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   todo-api:
     build:
@@ -16,7 +28,9 @@ services:
       - "8080:8080"
     environment:
       ASPNETCORE_ENVIRONMENT: Production
-      ConnectionStrings__TodoDatabase: Data Source=/data/todo.db
+      Database__Provider: Postgres
+      Database__ApplyMigrations: "false"
+      ConnectionStrings__TodoDatabase: Host=postgres;Port=5432;Database=todo;Username=todo;Password=${POSTGRES_PASSWORD:-compose-dev-password}
       ConnectionStrings__Redis: redis:6379
       Authentication__ApiKey: ${TODO_API_KEY:-compose-dev-api-key}
       Cors__AllowedOrigins__0: ${CORS_ALLOWED_ORIGIN:-http://localhost:3000}
@@ -27,11 +41,14 @@ services:
       Idempotency__EntryLifetimeSeconds: 300
       Idempotency__WaitTimeoutSeconds: 5
     volumes:
-      - todo-data:/data
       - data-protection-keys:/home/app/.aspnet/DataProtection-Keys
     depends_on:
       redis:
         condition: service_healthy
+      postgres:
+        condition: service_healthy
+      todo-api-migrate:
+        condition: service_completed_successfully
       todo-api-permissions:
         condition: service_completed_successfully
     healthcheck:
@@ -50,6 +67,20 @@ services:
       timeout: 3s
       retries: 5
 
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: todo
+      POSTGRES_USER: todo
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-compose-dev-password}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U todo -d todo"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
 volumes:
-  todo-data:
+  postgres-data:
   data-protection-keys:

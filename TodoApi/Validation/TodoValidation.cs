@@ -3,23 +3,17 @@
 public static class TodoValidation
 {
     // const はコンパイル時に決まる定数です。
-    public const int MaxTitleLength = 100;
+    // API層からも同じドメインルールを使い、Entityと制約値がずれないようにします。
+    public const int MaxTitleLength = TodoRules.MaxTitleLength;
 
     public static ValidationResult ValidateTitle(string? title)
     {
-        if (string.IsNullOrWhiteSpace(title))
+        var result = TodoTitle.Create(title);
+        if (!result.IsSuccess)
         {
             return ValidationResult.Failure(
-                code: "title_required",
-                message: "Title is required."
-            );
-        }
-
-        if (title.Length > MaxTitleLength)
-        {
-            return ValidationResult.Failure(
-                code: "title_too_long",
-                message: $"Title must be {MaxTitleLength} characters or fewer."
+                code: result.Error!.Code,
+                message: result.Error.Message
             );
         }
 

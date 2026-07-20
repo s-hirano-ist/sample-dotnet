@@ -40,4 +40,29 @@ public class ConfigurationOptionsValidatorTests
 
         Assert.True(result.Succeeded);
     }
+
+    [Theory]
+    [InlineData("Sqlite")]
+    [InlineData("Postgres")]
+    [InlineData("PostgreSQL")]
+    public void DatabaseValidator_WithSupportedProvider_Succeeds(string provider)
+    {
+        var result = new DatabaseOptionsValidator().Validate(null, new DatabaseOptions
+        {
+            Provider = provider
+        });
+
+        Assert.True(result.Succeeded);
+    }
+
+    [Fact]
+    public void DatabaseValidator_WithUnsupportedProvider_Fails()
+    {
+        var result = new DatabaseOptionsValidator().Validate(null, new DatabaseOptions
+        {
+            Provider = "MySql"
+        });
+
+        Assert.True(result.Failed);
+    }
 }
