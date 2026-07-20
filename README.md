@@ -87,7 +87,8 @@ dotnet --version
 │       ├── 36-database-provider-switching.md
 │       ├── 37-todo-entity-aggregate.md
 │       ├── 38-todo-title-value-object.md
-│       └── 39-application-use-cases.md
+│       ├── 39-application-use-cases.md
+│       └── 40-specifications.md
 ├── SampleDotnet.slnx
 ├── dotnet-tools.json
 ├── TodoApi/
@@ -101,6 +102,7 @@ dotnet --version
 │   ├── Application/
 │   │   └── Todos/
 │   ├── Domain/
+│   │   ├── TodoFilterSpecification.cs
 │   │   ├── TodoRules.cs
 │   │   └── TodoTitle.cs
 │   ├── Models/

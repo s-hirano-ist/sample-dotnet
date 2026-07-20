@@ -6,7 +6,7 @@
 
 ## 現在の学習テーマ
 
-現在は「DDD観点でTodoのUse CaseをApplication層へ分離する」ステップです。
+現在は「DDD観点でTodo一覧のSpecificationを導入する」ステップです。
 
 これまでの実装で学んだこと:
 
@@ -264,6 +264,14 @@
 - 冪等性キー処理から作成Use Caseを呼び出す流れ
 - `Program.cs`をHTTP入力検証とレスポンス変換に集中させる方法
 
+今回のSpecification導入で学ぶこと:
+
+- 検索条件を一つのSpecificationオブジェクトへまとめる方法
+- `Expression<Func<T, bool>>`を使って条件を表現する方法
+- SpecificationをEF Coreの`IQueryable`へ適用する流れ
+- Query Use Case、Repository、Specificationの責務を分ける考え方
+- 現在のTodoにDomain Serviceを人工的に追加しない判断
+
 今回のコードカバレッジで学ぶこと:
 
 - Line、Branch、Method coverageの違い
@@ -506,6 +514,8 @@
 - Value Objectの等価性と不正値拒否をテストする 完了
 - TodoServiceをCRUD Use Caseへ分割する 完了
 - HTTP入口からApplication Use CaseをDIして呼び出す構成にする 完了
+- Todo一覧の検索条件をSpecificationへ分離する 完了
+- SpecificationをEF Coreのクエリへ適用する 完了
 - GHCRへコンテナイメージを手動公開できるようにする 完了
 - Request IDを例外処理ログまで伝播させる 完了
 - リクエストキャンセルを500へ変換しないようにする 完了

@@ -106,20 +106,7 @@ public sealed class EfTodoRepository : ITodoRepository
 
     private IQueryable<TodoItem> BuildFilteredQuery(bool? isDone, string? search)
     {
-        var query = _dbContext.Todos.AsNoTracking();
-
-        if (isDone.HasValue)
-        {
-            query = query.Where(todo => todo.IsDone == isDone.Value);
-        }
-
-        var searchTerm = search?.Trim() ?? string.Empty;
-        if (searchTerm.Length > 0)
-        {
-            var normalizedSearchTerm = searchTerm.ToLowerInvariant();
-            query = query.Where(todo => todo.Title.ToLower().Contains(normalizedSearchTerm));
-        }
-
-        return query;
+        var specification = new TodoFilterSpecification(isDone, search);
+        return _dbContext.Todos.AsNoTracking().Where(specification.Criteria);
     }
 }
