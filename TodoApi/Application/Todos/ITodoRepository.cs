@@ -1,4 +1,4 @@
-// ITodoRepositoryは、TodoServiceが必要とする保存処理の契約です。
+// ITodoRepositoryは、TodoのUse Caseが必要とする保存処理の契約です。
 // EF CoreやPostgreSQLなどの具体的な仕組みをApplication層から隠します。
 public interface ITodoRepository
 {

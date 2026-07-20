@@ -188,9 +188,12 @@ builder.Services.AddOpenApi(options =>
     options.AddOperationTransformer<ApiKeyOperationTransformer>();
 });
 
-// TodoServiceは、Todoの作成・取得・更新・削除の処理をまとめたサービスです。
-// AddScoped は、HTTPリクエストごとに1つのインスタンスを作る登録方法です。
-builder.Services.AddScoped<TodoService>();
+// Use Caseは、ユーザーの操作単位に業務処理をまとめたクラスです。
+// HTTPの入口から分離することで、同じ操作を別の入口からも再利用できます。
+builder.Services.AddScoped<TodoQueryUseCase>();
+builder.Services.AddScoped<CreateTodoUseCase>();
+builder.Services.AddScoped<UpdateTodoUseCase>();
+builder.Services.AddScoped<DeleteTodoUseCase>();
 builder.Services.AddScoped<ITodoRepository, EfTodoRepository>();
 // ApiMetricsは、HTTPリクエストの件数と処理時間を記録するSingletonです。
 builder.Services.AddSingleton<ApiMetrics>();
@@ -356,7 +359,7 @@ app.MapGet("/todos", async (
     string? sortOrder,
     HttpContext httpContext,
     CancellationToken cancellationToken,
-    TodoService todoService
+    TodoQueryUseCase todoQueryUseCase
 ) =>
 {
     var currentPage = page ?? PaginationValidation.DefaultPage;
@@ -376,13 +379,15 @@ app.MapGet("/todos", async (
         return Results.BadRequest(sortValidation.Error);
     }
 
-    var todos = await todoService.GetPageAsync(
-        currentPage,
-        currentPageSize,
-        isDone,
-        search,
-        sortBy,
-        sortOrder,
+    var todos = await todoQueryUseCase.ListAsync(
+        new TodoListQuery(
+            currentPage,
+            currentPageSize,
+            isDone,
+            search,
+            sortBy,
+            sortOrder
+        ),
         cancellationToken
     );
 
@@ -406,7 +411,7 @@ app.MapGet("/todos/cursor", async (
     string? cursor,
     bool? isDone,
     string? search,
-    TodoService todoService,
+    TodoQueryUseCase todoQueryUseCase,
     CancellationToken cancellationToken
 ) =>
 {
@@ -431,11 +436,8 @@ app.MapGet("/todos/cursor", async (
         afterId = parsedAfterId;
     }
 
-    var response = await todoService.GetCursorPageAsync(
-        currentPageSize,
-        afterId,
-        isDone,
-        search,
+    var response = await todoQueryUseCase.ListByCursorAsync(
+        new TodoCursorQuery(currentPageSize, afterId, isDone, search),
         cancellationToken
     );
 
@@ -454,11 +456,11 @@ app.MapGet("/todos/cursor", async (
 app.MapGet("/todos/{id:int}", async (
     int id,
     HttpContext httpContext,
-    TodoService todoService,
+    TodoQueryUseCase todoQueryUseCase,
     CancellationToken cancellationToken
 ) =>
 {
-    var todo = await todoService.GetByIdAsync(id, cancellationToken);
+    var todo = await todoQueryUseCase.GetByIdAsync(id, cancellationToken);
 
     if (todo is null)
     {
@@ -493,11 +495,11 @@ app.MapGet("/todos/{id:int}", async (
 app.MapMethods("/todos/{id:int}", new[] { "HEAD" }, async (
     int id,
     HttpContext httpContext,
-    TodoService todoService,
+    TodoQueryUseCase todoQueryUseCase,
     CancellationToken cancellationToken
 ) =>
 {
-    var todo = await todoService.GetByIdAsync(id, cancellationToken);
+    var todo = await todoQueryUseCase.GetByIdAsync(id, cancellationToken);
 
     if (todo is null)
     {
@@ -520,7 +522,7 @@ app.MapMethods("/todos/{id:int}", new[] { "HEAD" }, async (
 app.MapPost("/todos", async (
     CreateTodoRequest request,
     HttpContext httpContext,
-    TodoService todoService,
+    CreateTodoUseCase createTodoUseCase,
     IIdempotencyStore idempotencyStore,
     CancellationToken cancellationToken
 ) =>
@@ -544,7 +546,7 @@ app.MapPost("/todos", async (
 
     if (idempotencyKey is null)
     {
-        todo = await todoService.CreateAsync(request, cancellationToken);
+        todo = await createTodoUseCase.ExecuteAsync(request, cancellationToken);
     }
     else
     {
@@ -553,7 +555,7 @@ app.MapPost("/todos", async (
             clientScope,
             idempotencyKey,
             TodoRequestFingerprint.Create(request),
-            () => todoService.CreateAsync(request, cancellationToken),
+            () => createTodoUseCase.ExecuteAsync(request, cancellationToken),
             cancellationToken
         );
 
@@ -607,11 +609,12 @@ app.MapPut("/todos/{id:int}", async (
     int id,
     UpdateTodoRequest request,
     HttpContext httpContext,
-    TodoService todoService,
+    TodoQueryUseCase todoQueryUseCase,
+    UpdateTodoUseCase updateTodoUseCase,
     CancellationToken cancellationToken
 ) =>
 {
-    var currentTodo = await todoService.GetByIdAsync(id, cancellationToken);
+    var currentTodo = await todoQueryUseCase.GetByIdAsync(id, cancellationToken);
 
     if (currentTodo is null)
     {
@@ -635,7 +638,7 @@ app.MapPut("/todos/{id:int}", async (
         return Results.BadRequest(validation.Error);
     }
 
-    var updatedTodo = await todoService.UpdateAsync(id, request, cancellationToken);
+    var updatedTodo = await updateTodoUseCase.ExecuteAsync(id, request, cancellationToken);
 
     if (updatedTodo is null)
     {
@@ -661,11 +664,12 @@ app.MapPut("/todos/{id:int}", async (
 app.MapDelete("/todos/{id:int}", async (
     int id,
     HttpContext httpContext,
-    TodoService todoService,
+    TodoQueryUseCase todoQueryUseCase,
+    DeleteTodoUseCase deleteTodoUseCase,
     CancellationToken cancellationToken
 ) =>
 {
-    var currentTodo = await todoService.GetByIdAsync(id, cancellationToken);
+    var currentTodo = await todoQueryUseCase.GetByIdAsync(id, cancellationToken);
 
     if (currentTodo is null)
     {
@@ -682,7 +686,7 @@ app.MapDelete("/todos/{id:int}", async (
         );
     }
 
-    var deleted = await todoService.DeleteAsync(id, cancellationToken);
+    var deleted = await deleteTodoUseCase.ExecuteAsync(id, cancellationToken);
 
     if (!deleted)
     {
