@@ -37,7 +37,7 @@ jobs:
         run: dotnet ef migrations has-pending-model-changes --project TodoApi --startup-project TodoApi --configuration Release --no-build
 
       - name: Test
-        run: dotnet test --configuration Release --no-build --no-restore --results-directory TestResults --collect:"XPlat Code Coverage"
+        run: dotnet test --configuration Release --no-restore --results-directory TestResults --collect:"XPlat Code Coverage"
 
       - name: Upload coverage report
         if: always()
