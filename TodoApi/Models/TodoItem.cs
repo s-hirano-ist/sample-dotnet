@@ -38,19 +38,19 @@ public class TodoItem
     // Entityを直接newする代わりに、作成時のルールをここへ集めます。
     public static DomainResult<TodoItem> Create(string title, DateTimeOffset createdAt)
     {
-        var validation = ValidateTitle(title);
-        if (!validation.IsSuccess)
+        var todoTitle = TodoTitle.Create(title);
+        if (!todoTitle.IsSuccess)
         {
             return DomainResult<TodoItem>.Failure(
-                validation.Error!.Code,
-                validation.Error.Message
+                todoTitle.Error!.Code,
+                todoTitle.Error.Message
             );
         }
 
         return DomainResult<TodoItem>.Success(
             new TodoItem(
                 Id: 0,
-                Title: title,
+                Title: todoTitle.Value!.Value,
                 IsDone: false,
                 CreatedAt: createdAt,
                 CompletedAt: null
@@ -61,13 +61,16 @@ public class TodoItem
     // ChangeTitleは、タイトルを変更するドメイン操作です。
     public DomainResult ChangeTitle(string title)
     {
-        var validation = ValidateTitle(title);
-        if (!validation.IsSuccess)
+        var todoTitle = TodoTitle.Create(title);
+        if (!todoTitle.IsSuccess)
         {
-            return validation;
+            return DomainResult.Failure(
+                todoTitle.Error!.Code,
+                todoTitle.Error.Message
+            );
         }
 
-        Title = title;
+        Title = todoTitle.Value!.Value;
         return DomainResult.Success;
     }
 
@@ -88,21 +91,4 @@ public class TodoItem
         return DomainResult.Success;
     }
 
-    private static DomainResult ValidateTitle(string title)
-    {
-        if (string.IsNullOrWhiteSpace(title))
-        {
-            return DomainResult.Failure("title_required", "Title is required.");
-        }
-
-        if (title.Length > TodoRules.MaxTitleLength)
-        {
-            return DomainResult.Failure(
-                "title_too_long",
-                $"Title must be {TodoRules.MaxTitleLength} characters or fewer."
-            );
-        }
-
-        return DomainResult.Success;
-    }
 }

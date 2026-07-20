@@ -8,19 +8,12 @@ public static class TodoValidation
 
     public static ValidationResult ValidateTitle(string? title)
     {
-        if (string.IsNullOrWhiteSpace(title))
+        var result = TodoTitle.Create(title);
+        if (!result.IsSuccess)
         {
             return ValidationResult.Failure(
-                code: "title_required",
-                message: "Title is required."
-            );
-        }
-
-        if (title.Length > MaxTitleLength)
-        {
-            return ValidationResult.Failure(
-                code: "title_too_long",
-                message: $"Title must be {MaxTitleLength} characters or fewer."
+                code: result.Error!.Code,
+                message: result.Error.Message
             );
         }
 

@@ -6,7 +6,7 @@
 
 ## 現在の学習テーマ
 
-現在は「DDD観点でTodo Entity/Aggregateを設計する」ステップです。
+現在は「DDD観点でTodoタイトルをValue Object化する」ステップです。
 
 これまでの実装で学んだこと:
 
@@ -248,6 +248,14 @@
 - `TimeProvider`を使って時刻依存の処理をテスト可能にする方法
 - Domain層のルールをAPI入力検証から再利用する依存方向
 
+今回のValue Object化で学ぶこと:
+
+- `TodoTitle`のように、値と制約を一つの型へまとめる方法
+- `record`を使った値ベースの等価性
+- Value Objectを無効な状態で生成できないFactoryの考え方
+- APIの文字列形式とDomain内部のValue Objectを分離する方法
+- 既存DBスキーマを変えずに段階的にValue Objectを導入する方法
+
 今回のコードカバレッジで学ぶこと:
 
 - Line、Branch、Method coverageの違い
@@ -486,6 +494,8 @@
 - PostgreSQLマイグレーションを専用コンテナで適用する 完了
 - TodoItemをEntity/Aggregate Rootとして状態変更をカプセル化する 完了
 - Todoのドメインルールと時刻依存をテストで検証する 完了
+- TodoTitleをValue Objectとして導入する 完了
+- Value Objectの等価性と不正値拒否をテストする 完了
 - GHCRへコンテナイメージを手動公開できるようにする 完了
 - Request IDを例外処理ログまで伝播させる 完了
 - リクエストキャンセルを500へ変換しないようにする 完了

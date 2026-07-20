@@ -85,7 +85,8 @@ dotnet --version
 │       ├── 34-cursor-pagination.md
 │       ├── 35-ci-quality-gates.md
 │       ├── 36-database-provider-switching.md
-│       └── 37-todo-entity-aggregate.md
+│       ├── 37-todo-entity-aggregate.md
+│       └── 38-todo-title-value-object.md
 ├── SampleDotnet.slnx
 ├── dotnet-tools.json
 ├── TodoApi/
@@ -98,6 +99,9 @@ dotnet --version
 │   │   └── TodoDbContextModelSnapshot.cs
 │   ├── Application/
 │   │   └── Todos/
+│   ├── Domain/
+│   │   ├── TodoRules.cs
+│   │   └── TodoTitle.cs
 │   ├── Models/
 │   │   └── TodoItem.cs
 │   ├── Program.cs
